@@ -82,6 +82,18 @@ These must exist in each repository:
 
 ## 🚀 Deployment
 
+### ⚠️ Prerequisites
+
+**IMPORTANT**: Before deploying, you must set up a Personal Access Token (PAT):
+
+1. The default `GITHUB_TOKEN` **cannot access private organization repositories**
+2. Create a PAT with `repo` scope (see [Setup Guide](./SETUP_WORKFLOW_DEPLOYMENT.md))
+3. Add it as `ORG_GITHUB_TOKEN` secret in repository settings
+
+**Without the PAT, deployment will fail with "Repository not found or not accessible" errors.**
+
+📖 **See**: [Setup Workflow Deployment](./SETUP_WORKFLOW_DEPLOYMENT.md) for detailed instructions.
+
 ### Automatic Deployment (Recommended)
 
 When you update workflows or configs in `.github` repository:

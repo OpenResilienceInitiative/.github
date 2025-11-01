@@ -130,6 +130,7 @@ We welcome contributions! Here's how to get started:
 - [Label Setup Guide](./LABEL_SETUP_GUIDE.md) - Understanding our label system
 - [Code Review Guide](./CODE_REVIEW_GUIDE.md) - Review standards and practices
 - [Workflow Deployment Guide](./WORKFLOW_DEPLOYMENT_GUIDE.md) - How workflows are deployed across repositories
+- [Setup Workflow Deployment](./SETUP_WORKFLOW_DEPLOYMENT.md) - **Required**: Set up PAT for accessing private repos
 
 ### Automated Checks
 

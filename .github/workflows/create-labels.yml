@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - '.github/workflows/create-labels.yml'
-      - '.github/scripts/create-labels.sh'
+      - 'scripts/create-labels.sh'
     branches:
       - main
       - master
-  workflow_dispatch:  # Optional: Manual trigger if needed (for re-running)
+  workflow_dispatch:  # Manual trigger option
 
 # ⚠️ IMPORTANT: This workflow only runs when:
 # 1. The workflow file itself is pushed/updated
@@ -30,27 +30,40 @@ jobs:
 
       - name: Setup GitHub CLI
         run: |
-          type -p curl >/dev/null || (apt update && apt install curl -y)
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-          && apt update \
-          && apt install gh -y
+          if ! command -v gh &> /dev/null; then
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh -y
+          else
+            echo "GitHub CLI already installed"
+          fi
 
-      - name: Authenticate GitHub CLI
+      - name: Check authentication token
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-          gh auth status
+          # GitHub CLI automatically uses GITHUB_TOKEN from environment
+          if [ -n "$ORG_GITHUB_TOKEN" ]; then
+            echo "✅ Will use PAT (ORG_GITHUB_TOKEN) for authentication"
+          else
+            echo "⚠️ Will use GITHUB_TOKEN (may have limited org repo access)"
+            echo "💡 Tip: Set ORG_GITHUB_TOKEN secret for better access to private repos"
+          fi
 
       - name: Make script executable
-        run: chmod +x .github/scripts/create-labels.sh
+        run: chmod +x scripts/create-labels.sh
 
       - name: Create labels across all repositories
         env:
           CI: true  # Set CI flag for non-interactive mode
+          # Use PAT if available (better for private org repos), otherwise GITHUB_TOKEN
+          # Set ORG_GITHUB_TOKEN secret (PAT with 'repo' scope) for private org repos
+          ORG_GITHUB_TOKEN: ${{ secrets.ORG_GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          bash .github/scripts/create-labels.sh
+          # Use PAT if available, otherwise use GITHUB_TOKEN
+          export GITHUB_TOKEN=${ORG_GITHUB_TOKEN:-$GITHUB_TOKEN}
+          bash scripts/create-labels.sh
 
       - name: Summary
         if: always()
