@@ -45,13 +45,15 @@ GITHUB_REPO_ROOT="${GITHUB_WORKSPACE:-$GITHUB_DIR}"
 WORKFLOW_TEMPLATE="$GITHUB_REPO_ROOT/.github/workflows/pr-validation-caller.yml"
 PR_LABELER_CONFIG="$GITHUB_REPO_ROOT/pr-labeler.yml"
 SIZE_LABELER_CONFIG="$GITHUB_REPO_ROOT/size-labeler.yml"
-PR_TEMPLATE_DIR="$GITHUB_REPO_ROOT/pull_request_template"
+# PR templates are centralized in .github repository - no deployment needed
 
 # Temporary directory for cloning
 TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
-echo -e "${BLUE}🚀 Deploying workflows, config files, and PR templates to all ORISO repositories...${NC}\n"
+echo -e "${BLUE}🚀 Deploying workflows and config files to all ORISO repositories...${NC}\n"
+echo -e "${YELLOW}ℹ️  Note: PR templates are centralized in .github repository${NC}"
+echo -e "${YELLOW}   They are automatically available to all organization repositories${NC}\n"
 
 # Check if files exist
 if [ ! -f "$WORKFLOW_TEMPLATE" ]; then
@@ -69,35 +71,8 @@ if [ ! -f "$SIZE_LABELER_CONFIG" ]; then
   exit 1
 fi
 
-if [ ! -d "$PR_TEMPLATE_DIR" ]; then
-  echo -e "${RED}❌ Error: PR template directory not found: $PR_TEMPLATE_DIR${NC}"
-  echo -e "${YELLOW}Debug info:${NC}"
-  echo -e "  SCRIPT_DIR: $SCRIPT_DIR"
-  echo -e "  GITHUB_DIR: $GITHUB_DIR"
-  echo -e "  GITHUB_REPO_ROOT: $GITHUB_REPO_ROOT"
-  echo -e "  GITHUB_WORKSPACE: ${GITHUB_WORKSPACE:-not set}"
-  echo -e "  Current directory: $(pwd)"
-  echo -e "  Looking for templates in alternate locations..."
-  
-  # Try alternate locations
-  if [ -d "$GITHUB_DIR/pull_request_template" ]; then
-    echo -e "${GREEN}✅ Found templates at: $GITHUB_DIR/pull_request_template${NC}"
-    PR_TEMPLATE_DIR="$GITHUB_DIR/pull_request_template"
-  elif [ -d "$(pwd)/pull_request_template" ]; then
-    echo -e "${GREEN}✅ Found templates at: $(pwd)/pull_request_template${NC}"
-    PR_TEMPLATE_DIR="$(pwd)/pull_request_template"
-  elif [ -n "$GITHUB_WORKSPACE" ] && [ -d "$GITHUB_WORKSPACE/pull_request_template" ]; then
-    echo -e "${GREEN}✅ Found templates at: $GITHUB_WORKSPACE/pull_request_template${NC}"
-    PR_TEMPLATE_DIR="$GITHUB_WORKSPACE/pull_request_template"
-  else
-    echo -e "${RED}❌ Templates not found in any location${NC}"
-    echo -e "${YELLOW}Expected locations:${NC}"
-    echo -e "  - $PR_TEMPLATE_DIR"
-    echo -e "  - $GITHUB_DIR/pull_request_template"
-    echo -e "  - $(pwd)/pull_request_template"
-    exit 1
-  fi
-fi
+# PR templates are centralized - no need to check or copy them
+# They are automatically available from .github repository to all org repos
 
 # Check if gh CLI is available
 if ! command -v gh &> /dev/null; then
@@ -179,10 +154,8 @@ for repo in "${REPOS[@]}"; do
   echo -e "${YELLOW}⚙️  Copying size labeler config...${NC}"
   cp "$SIZE_LABELER_CONFIG" .github/size-labeler.yml
   
-  # Copy PR templates
-  echo -e "${YELLOW}📝 Copying PR templates...${NC}"
-  mkdir -p .github/pull_request_template
-  cp -r "$PR_TEMPLATE_DIR"/* .github/pull_request_template/
+  # Note: PR templates are centralized in .github repository and automatically
+  # available to all organization repositories - no need to copy them
   
   # Check if there are changes
   if git diff --quiet && git diff --cached --quiet; then
@@ -193,7 +166,7 @@ for repo in "${REPOS[@]}"; do
   
   # Commit changes
   echo -e "${YELLOW}💾 Committing changes...${NC}"
-  git add .github/workflows/pr-validation.yml .github/pr-labeler.yml .github/size-labeler.yml .github/pull_request_template/
+  git add .github/workflows/pr-validation.yml .github/pr-labeler.yml .github/size-labeler.yml
   
   # Create or checkout a branch for the changes
   BRANCH_NAME="chore/add-pr-validation-workflow"
@@ -203,15 +176,17 @@ for repo in "${REPOS[@]}"; do
     git checkout -b $BRANCH_NAME
   fi
   
-  git commit -m "chore: Add PR validation workflow, config files, and PR templates
+  git commit -m "chore: Add PR validation workflow and config files
 
 - Add reusable PR validation workflow from organization .github
 - Add PR labeler configuration
 - Add size labeler configuration
-- Add PR templates (frontend, backend, docs, bugfix, etc.)
 
-This enables automated PR validation, labeling, quality checks, and
-standardized PR templates across all ORISO repositories."
+Note: PR templates are centralized in .github repository and automatically
+available to all organization repositories.
+
+This enables automated PR validation, labeling, and quality checks
+across all ORISO repositories."
 
   # Push changes
   echo -e "${YELLOW}🚀 Pushing changes...${NC}"
@@ -232,7 +207,8 @@ This PR adds the standardized PR validation workflow and configuration files to 
 - ✅ Added PR validation workflow (calls reusable workflow from \`.github\` repository)
 - ✅ Added PR labeler configuration (\`.github/pr-labeler.yml\`)
 - ✅ Added size labeler configuration (\`.github/size-labeler.yml\`)
-- ✅ Added PR templates (\`.github/pull_request_template/\`)
+
+**Note:** PR templates are centralized in the \`.github\` repository and automatically available to all organization repositories. No need to copy them to each repository.
 
 ## 🔍 What This Enables
 

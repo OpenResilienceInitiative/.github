@@ -8,7 +8,7 @@ on:
       - '.github/workflows/pr-validation.yml'
       - 'pr-labeler.yml'
       - 'size-labeler.yml'
-      - 'pull_request_template/**'
+      # PR templates are centralized - no need to trigger on template changes
       - 'scripts/deploy-workflows.sh'
     branches:
       - main
@@ -67,16 +67,6 @@ jobs:
         run: |
           # Use PAT if available, otherwise use GITHUB_TOKEN
           export GITHUB_TOKEN=${ORG_GITHUB_TOKEN:-$GITHUB_TOKEN}
-          # Ensure we're in the repository root
-          cd "${{ github.workspace }}"
-          # Verify PR templates exist before running script
-          if [ ! -d "pull_request_template" ]; then
-            echo "❌ Error: pull_request_template directory not found in repository root"
-            echo "Current directory: $(pwd)"
-            echo "Contents:"
-            ls -la
-            exit 1
-          fi
           bash scripts/deploy-workflows.sh
 
       - name: Summary
@@ -84,13 +74,16 @@ jobs:
         run: |
           echo "## ✅ Workflow Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The PR validation workflow, config files, and PR templates have been deployed to all ORISO repositories." >> $GITHUB_STEP_SUMMARY
+          echo "The PR validation workflow and config files have been deployed to all ORISO repositories." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**PR Templates:** Centralized in \`.github\` repository - automatically available to all repositories." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**What was done:**" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Copied PR validation workflow to all repositories" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Copied PR labeler configuration" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Copied size labeler configuration" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Copied PR templates (pull_request_template/)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** PR templates are centralized in \`.github\` repository and automatically available to all organization repositories." >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Created pull requests in each repository" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY

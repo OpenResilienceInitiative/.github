@@ -4,7 +4,7 @@
 
 ## Available Templates
 
-When creating a PR, GitHub will show you all available templates in `.github/pull_request_template/`:
+When creating a PR, GitHub will show you all available templates. Templates are **centralized** in the `.github` repository at `.github/pull_request_template/` and automatically available to all organization repositories:
 
 | Template | Purpose | Use When |
 |----------|---------|----------|
