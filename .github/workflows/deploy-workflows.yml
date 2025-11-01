@@ -67,6 +67,16 @@ jobs:
         run: |
           # Use PAT if available, otherwise use GITHUB_TOKEN
           export GITHUB_TOKEN=${ORG_GITHUB_TOKEN:-$GITHUB_TOKEN}
+          # Ensure we're in the repository root
+          cd "${{ github.workspace }}"
+          # Verify PR templates exist before running script
+          if [ ! -d "pull_request_template" ]; then
+            echo "❌ Error: pull_request_template directory not found in repository root"
+            echo "Current directory: $(pwd)"
+            echo "Contents:"
+            ls -la
+            exit 1
+          fi
           bash scripts/deploy-workflows.sh
 
       - name: Summary

@@ -37,11 +37,15 @@ REPOS=(
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the .github repository root directory (parent of scripts directory)
 GITHUB_DIR="$(dirname "$SCRIPT_DIR")"
-WORKFLOW_TEMPLATE="$GITHUB_DIR/.github/workflows/pr-validation-caller.yml"
-PR_LABELER_CONFIG="$GITHUB_DIR/pr-labeler.yml"
-SIZE_LABELER_CONFIG="$GITHUB_DIR/size-labeler.yml"
-PR_TEMPLATE_DIR="$GITHUB_DIR/pull_request_template"
+# In GitHub Actions, GITHUB_WORKSPACE is set to the repository root
+# For local runs, use GITHUB_DIR (parent of scripts)
+GITHUB_REPO_ROOT="${GITHUB_WORKSPACE:-$GITHUB_DIR}"
+WORKFLOW_TEMPLATE="$GITHUB_REPO_ROOT/.github/workflows/pr-validation-caller.yml"
+PR_LABELER_CONFIG="$GITHUB_REPO_ROOT/pr-labeler.yml"
+SIZE_LABELER_CONFIG="$GITHUB_REPO_ROOT/size-labeler.yml"
+PR_TEMPLATE_DIR="$GITHUB_REPO_ROOT/pull_request_template"
 
 # Temporary directory for cloning
 TEMP_DIR=$(mktemp -d)
@@ -67,7 +71,32 @@ fi
 
 if [ ! -d "$PR_TEMPLATE_DIR" ]; then
   echo -e "${RED}❌ Error: PR template directory not found: $PR_TEMPLATE_DIR${NC}"
-  exit 1
+  echo -e "${YELLOW}Debug info:${NC}"
+  echo -e "  SCRIPT_DIR: $SCRIPT_DIR"
+  echo -e "  GITHUB_DIR: $GITHUB_DIR"
+  echo -e "  GITHUB_REPO_ROOT: $GITHUB_REPO_ROOT"
+  echo -e "  GITHUB_WORKSPACE: ${GITHUB_WORKSPACE:-not set}"
+  echo -e "  Current directory: $(pwd)"
+  echo -e "  Looking for templates in alternate locations..."
+  
+  # Try alternate locations
+  if [ -d "$GITHUB_DIR/pull_request_template" ]; then
+    echo -e "${GREEN}✅ Found templates at: $GITHUB_DIR/pull_request_template${NC}"
+    PR_TEMPLATE_DIR="$GITHUB_DIR/pull_request_template"
+  elif [ -d "$(pwd)/pull_request_template" ]; then
+    echo -e "${GREEN}✅ Found templates at: $(pwd)/pull_request_template${NC}"
+    PR_TEMPLATE_DIR="$(pwd)/pull_request_template"
+  elif [ -n "$GITHUB_WORKSPACE" ] && [ -d "$GITHUB_WORKSPACE/pull_request_template" ]; then
+    echo -e "${GREEN}✅ Found templates at: $GITHUB_WORKSPACE/pull_request_template${NC}"
+    PR_TEMPLATE_DIR="$GITHUB_WORKSPACE/pull_request_template"
+  else
+    echo -e "${RED}❌ Templates not found in any location${NC}"
+    echo -e "${YELLOW}Expected locations:${NC}"
+    echo -e "  - $PR_TEMPLATE_DIR"
+    echo -e "  - $GITHUB_DIR/pull_request_template"
+    echo -e "  - $(pwd)/pull_request_template"
+    exit 1
+  fi
 fi
 
 # Check if gh CLI is available
