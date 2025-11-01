@@ -20,7 +20,6 @@ on:
 permissions:
   contents: write  # Needed to create commits and PRs in repositories
   pull-requests: write  # Needed to create pull requests
-  metadata: read  # Needed to read repository metadata
 
 jobs:
   deploy-workflows:
