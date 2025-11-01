@@ -35,7 +35,6 @@ jobs:
             perf
             test
           requireScope: false
-          scopes: []
           subjectPattern: ^(?![A-Z]).+$
           subjectPatternError: |
             The subject "{subject}" found in the pull request title "{title}"
