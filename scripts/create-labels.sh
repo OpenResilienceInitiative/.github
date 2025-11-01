@@ -19,7 +19,8 @@
 #   bash .github/scripts/create-labels.sh
 # =============================================================================
 
-set -e  # Exit on error
+# Don't exit on error - we want to continue processing other labels/repos even if one fails
+set +e  # Continue on error to process all repositories
 
 ORGANIZATION="OpenResilienceInitiative"
 
@@ -108,51 +109,27 @@ check_auth() {
     fi
 }
 
-# Function to check if label exists
-label_exists() {
-    local REPO=$1
-    local NAME=$2
-    local FULL_REPO="$ORGANIZATION/$REPO"
-    
-    gh label list --repo "$FULL_REPO" --json name --jq ".[] | select(.name==\"$NAME\") | .name" 2>/dev/null | grep -q "^$NAME$"
-}
-
-# Function to create or update a single label
-# This function prevents duplicates by checking existence first
-create_label() {
+# Function to create or update a label (simple - tries create, if fails tries update)
+create_or_update_label() {
     local REPO=$1
     local NAME=$2
     local COLOR=$3
     local DESC=$4
-    
     local FULL_REPO="$ORGANIZATION/$REPO"
     
-    # This function is called AFTER checking if label exists
-    # So we know whether to create or update
-    if label_exists "$REPO" "$NAME"; then
-        # Label exists - update it (never creates duplicate)
-        if [ -z "$DESC" ]; then
-            gh label edit "$NAME" \
-                --repo "$FULL_REPO" \
-                --color "$COLOR" 2>/dev/null && return 0 || return 1
-        else
-            gh label edit "$NAME" \
-                --repo "$FULL_REPO" \
-                --color "$COLOR" \
-                --description "$DESC" 2>/dev/null && return 0 || return 1
+    # Try to create first (idempotent - will fail if exists, then we update)
+    if [ -z "$DESC" ]; then
+        if gh label create "$NAME" --repo "$FULL_REPO" --color "$COLOR" &>/dev/null; then
+            return 0
         fi
+        # Create failed, try update (label exists)
+        gh label edit "$NAME" --repo "$FULL_REPO" --color "$COLOR" &>/dev/null
     else
-        # Label doesn't exist - create it (safe, no duplicate possible)
-        if [ -z "$DESC" ]; then
-            gh label create "$NAME" \
-                --repo "$FULL_REPO" \
-                --color "$COLOR" 2>/dev/null && return 0 || return 1
-        else
-            gh label create "$NAME" \
-                --repo "$FULL_REPO" \
-                --color "$COLOR" \
-                --description "$DESC" 2>/dev/null && return 0 || return 1
+        if gh label create "$NAME" --repo "$FULL_REPO" --color "$COLOR" --description "$DESC" &>/dev/null; then
+            return 0
         fi
+        # Create failed, try update (label exists)
+        gh label edit "$NAME" --repo "$FULL_REPO" --color "$COLOR" --description "$DESC" &>/dev/null
     fi
 }
 
@@ -160,39 +137,31 @@ create_label() {
 create_repo_labels() {
     local REPO=$1
     local SUCCESS=0
-    local SKIPPED=0
-    local FAILED=0
     
     echo -e "\n${BLUE}📦 Processing: ${REPO}${NC}"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
+    # Check repository access
+    if ! gh repo view "$ORGANIZATION/$REPO" &>/dev/null; then
+        echo -e "  ${RED}❌ Cannot access repository${NC}"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        return 0  # Continue with other repos
+    fi
+    
+    # Process each label
     for LABEL_DEF in "${LABELS[@]}"; do
         IFS='|' read -r NAME COLOR DESC <<< "$LABEL_DEF"
         
-        # Check if label already exists before attempting to create/update
-        if label_exists "$REPO" "$NAME"; then
-            # Label exists - update it
-            if create_label "$REPO" "$NAME" "$COLOR" "$DESC"; then
-                echo -e "  ${YELLOW}↻${NC} $NAME (updated existing)"
-                ((SUCCESS++))
-            else
-                echo -e "  ${YELLOW}⊘${NC} $NAME (exists, update failed - keeping existing)"
-                ((SKIPPED++))
-            fi
+        if create_or_update_label "$REPO" "$NAME" "$COLOR" "$DESC"; then
+            echo -e "  ${GREEN}✓${NC} $NAME"
+            ((SUCCESS++))
         else
-            # Label doesn't exist - create it
-            if create_label "$REPO" "$NAME" "$COLOR" "$DESC"; then
-                echo -e "  ${GREEN}✓${NC} $NAME (created)"
-                ((SUCCESS++))
-            else
-                echo -e "  ${RED}✗${NC} $NAME (creation failed)"
-                ((FAILED++))
-            fi
+            echo -e "  ${RED}✗${NC} $NAME (failed)"
         fi
     done
     
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo -e "${GREEN}✅ Created: $SUCCESS${NC} | ${YELLOW}Skipped: $SKIPPED${NC} | ${RED}Failed: $FAILED${NC}"
+    echo -e "${GREEN}✅ Success: $SUCCESS / ${#LABELS[@]}${NC}"
 }
 
 # Main execution
@@ -225,9 +194,6 @@ main() {
     fi
     
     # Process each repository
-    local TOTAL_SUCCESS=0
-    local TOTAL_SKIPPED=0
-    local TOTAL_FAILED=0
     local START_TIME=$(date +%s)
     
     for REPO in "${REPOS[@]}"; do
@@ -246,9 +212,7 @@ main() {
     echo -e "${NC}"
     echo -e "${GREEN}✅ Completed in ${DURATION} seconds${NC}"
     echo -e "${BLUE}📦 Repositories processed: ${#REPOS[@]}${NC}"
-    echo -e "${BLUE}🏷️  Labels per repository: ${#LABELS[@]}${NC}"
-    echo -e "${BLUE}📊 Total labels processed: $((${#REPOS[@]} * ${#LABELS[@]}))${NC}"
-    echo -e "\n${GREEN}🎉 All done! Labels are ready for your PR workflow.${NC}"
+    echo -e "${GREEN}🎉 All done! Labels are ready for your PR workflow.${NC}"
 }
 
 # Run main function

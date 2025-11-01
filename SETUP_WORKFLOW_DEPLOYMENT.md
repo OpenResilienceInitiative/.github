@@ -57,6 +57,8 @@ To deploy workflows to all 17 private ORISO repositories, you need a Personal Ac
        - `public_repo`
        - `repo:invite`
        - `security_events`
+     - ✅ `read:org` (Read org and team membership) - **REQUIRED for organization repositories**
+       - This allows access to private organization repositories
 4. Click **"Generate token"**
 5. **Copy the token immediately** (you won't be able to see it again!)
 
