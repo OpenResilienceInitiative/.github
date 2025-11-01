@@ -3,9 +3,9 @@ name: Deploy Workflows to All Repositories
 on:
   push:
     paths:
-      - 'workflows/deploy-workflows.yml'
-      - 'workflows/pr-validation-caller.yml'
-      - 'workflows/pr-validation.yml'
+      - '.github/workflows/deploy-workflows.yml'
+      - '.github/workflows/pr-validation-caller.yml'
+      - '.github/workflows/pr-validation.yml'
       - 'pr-labeler.yml'
       - 'size-labeler.yml'
       - 'scripts/deploy-workflows.sh'

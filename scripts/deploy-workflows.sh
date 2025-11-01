@@ -38,7 +38,7 @@ REPOS=(
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GITHUB_DIR="$(dirname "$SCRIPT_DIR")"
-WORKFLOW_TEMPLATE="$GITHUB_DIR/workflows/pr-validation-caller.yml"
+WORKFLOW_TEMPLATE="$GITHUB_DIR/.github/workflows/pr-validation-caller.yml"
 PR_LABELER_CONFIG="$GITHUB_DIR/pr-labeler.yml"
 SIZE_LABELER_CONFIG="$GITHUB_DIR/size-labeler.yml"
 
