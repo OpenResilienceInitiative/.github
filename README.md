@@ -129,6 +129,7 @@ We welcome contributions! Here's how to get started:
 - [PR Template Setup Guide](./PR_TEMPLATE_SETUP_GUIDE.md) - How to create proper PRs
 - [Label Setup Guide](./LABEL_SETUP_GUIDE.md) - Understanding our label system
 - [Code Review Guide](./CODE_REVIEW_GUIDE.md) - Review standards and practices
+- [Workflow Deployment Guide](./WORKFLOW_DEPLOYMENT_GUIDE.md) - How workflows are deployed across repositories
 
 ### Automated Checks
 
@@ -161,9 +162,11 @@ See [LABEL_SETUP_GUIDE.md](./LABEL_SETUP_GUIDE.md) for complete details.
 This `.github` repository contains **organization-wide standards** that apply to all repositories:
 
 - 📋 **PR Templates** - Standardized templates for different change types
-- ⚙️ **Workflow Automation** - GitHub Actions for validation and quality checks
+- ⚙️ **Workflow Automation** - GitHub Actions for validation and quality checks (using reusable workflows)
 - 🏷️ **Label Configuration** - Consistent labeling across all repos
 - 📚 **Documentation** - Contribution guidelines and best practices
+
+> **💡 Note:** Workflows use GitHub's **reusable workflows** feature. The main workflow logic is defined here in `.github`, and individual repositories call it. This means updates to workflows automatically apply to all repositories. See [Workflow Deployment Guide](./WORKFLOW_DEPLOYMENT_GUIDE.md) for details.
 
 ---
 

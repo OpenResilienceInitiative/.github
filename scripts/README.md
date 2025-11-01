@@ -190,11 +190,53 @@ set -e  # Exit on error
 
 ---
 
+### 📦 Workflow Deployment
+
+**Script:** `deploy-workflows.sh`
+
+**Purpose:** Deploys PR validation workflows and configuration files to all ORISO Platform repositories.
+
+**What it does:**
+- Copies PR validation workflow to each repository
+- Copies PR labeler configuration (`.github/pr-labeler.yml`)
+- Copies size labeler configuration (`.github/size-labeler.yml`)
+- Creates pull requests in each repository for review
+
+**Files deployed:**
+- `pr-validation.yml` - Calls the reusable workflow from `.github` repository
+- `pr-labeler.yml` - Branch-based labeling configuration
+- `size-labeler.yml` - PR size labeling configuration
+
+**Usage:**
+
+**Option 1: Automatic (Recommended)**
+- Push workflow files or configs → Runs automatically
+- Go to: Actions → "Deploy Workflows to All Repositories"
+- Workflow runs automatically when files are updated
+
+**Option 2: Manual via GitHub Actions**
+- Go to: `https://github.com/OpenResilienceInitiative/.github`
+- Click **Actions** → **Deploy Workflows to All Repositories**
+- Click **Run workflow** → **Run workflow**
+
+**Option 3: GitHub Codespaces**
+```bash
+gh auth login --web
+bash .github/scripts/deploy-workflows.sh
+```
+
+**Workflow:** `.github/workflows/deploy-workflows.yml`
+
+**Documentation:** See main [README.md](../README.md) for workflow information.
+
+---
+
 ## 📋 Script Index
 
 | Script | Purpose | Workflow | Runs When |
 |--------|---------|----------|-----------|
 | `create-labels.sh` | Create labels across repos | `create-labels.yml` | Script/workflow updated or manual |
+| `deploy-workflows.sh` | Deploy workflows and configs to all repos | `deploy-workflows.yml` | Workflow/config files updated or manual |
 
 ---
 

@@ -1,0 +1,73 @@
+name: Deploy Workflows to All Repositories
+
+on:
+  push:
+    paths:
+      - '.github/workflows/pr-validation-caller.yml'
+      - '.github/workflows/pr-validation.yml'
+      - '.github/pr-labeler.yml'
+      - '.github/size-labeler.yml'
+      - '.github/scripts/deploy-workflows.sh'
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Manual trigger option
+
+# ⚠️ IMPORTANT: This workflow deploys PR validation workflows to all ORISO repositories
+# It runs automatically when workflow files or configs are updated
+
+permissions:
+  contents: write  # Needed to create commits and PRs in repositories
+  pull-requests: write  # Needed to create pull requests
+
+jobs:
+  deploy-workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub CLI
+        run: |
+          type -p curl >/dev/null || (apt update && apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && apt update \
+          && apt install gh -y
+
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+          gh auth status
+
+      - name: Make script executable
+        run: chmod +x .github/scripts/deploy-workflows.sh
+
+      - name: Deploy workflows to all repositories
+        env:
+          CI: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash .github/scripts/deploy-workflows.sh
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## ✅ Workflow Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The PR validation workflow and config files have been deployed to all ORISO repositories." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**What was done:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Copied PR validation workflow to all repositories" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Copied PR labeler configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Copied size labeler configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Created pull requests in each repository" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Review and merge the pull requests in each repository" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ Verify workflows are active: Go to Actions tab in each repo" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✅ Create a test PR to see the workflow in action" >> $GITHUB_STEP_SUMMARY
+
