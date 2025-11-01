@@ -126,6 +126,7 @@ We welcome contributions! Here's how to get started:
 - ✅ **Documentation** - Update docs for significant changes
 
 **📖 Detailed Guides:**
+- [Testing Guide](./TESTING_GUIDE.md) - **NEW**: How to test workflows, GitHub setup, and CodeRabbit
 - [PR Template Setup Guide](./PR_TEMPLATE_SETUP_GUIDE.md) - How to create proper PRs
 - [Label Setup Guide](./LABEL_SETUP_GUIDE.md) - Understanding our label system
 - [Code Review Guide](./CODE_REVIEW_GUIDE.md) - Review standards and practices

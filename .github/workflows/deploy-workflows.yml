@@ -8,6 +8,7 @@ on:
       - '.github/workflows/pr-validation.yml'
       - 'pr-labeler.yml'
       - 'size-labeler.yml'
+      - 'pull_request_template/**'
       - 'scripts/deploy-workflows.sh'
     branches:
       - main
@@ -73,12 +74,13 @@ jobs:
         run: |
           echo "## ✅ Workflow Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The PR validation workflow and config files have been deployed to all ORISO repositories." >> $GITHUB_STEP_SUMMARY
+          echo "The PR validation workflow, config files, and PR templates have been deployed to all ORISO repositories." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**What was done:**" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Copied PR validation workflow to all repositories" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Copied PR labeler configuration" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Copied size labeler configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Copied PR templates (pull_request_template/)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Created pull requests in each repository" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY

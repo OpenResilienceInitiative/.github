@@ -127,6 +127,7 @@ When you run the deployment:
 | `pr-validation.yml` | `.github/workflows/pr-validation-caller.yml` | `{repo}/.github/workflows/pr-validation.yml` | Calls reusable workflow |
 | `pr-labeler.yml` | `.github/pr-labeler.yml` | `{repo}/.github/pr-labeler.yml` | Labeling rules |
 | `size-labeler.yml` | `.github/size-labeler.yml` | `{repo}/.github/size-labeler.yml` | Size classification |
+| `pull_request_template/` | `.github/pull_request_template/` | `{repo}/.github/pull_request_template/` | PR templates (8 templates) |
 
 ## 📝 Updating Workflows
 

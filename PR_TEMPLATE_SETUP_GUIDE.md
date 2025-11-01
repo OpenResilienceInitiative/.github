@@ -4,7 +4,7 @@
 
 ## Available Templates
 
-When creating a PR, GitHub will show you all available templates in `.github/PULL_REQUEST_TEMPLATE/`:
+When creating a PR, GitHub will show you all available templates in `.github/pull_request_template/`:
 
 | Template | Purpose | Use When |
 |----------|---------|----------|
