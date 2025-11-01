@@ -20,6 +20,7 @@ on:
 permissions:
   contents: write  # Needed to create commits and PRs in repositories
   pull-requests: write  # Needed to create pull requests
+  metadata: read  # Needed to read repository metadata
 
 jobs:
   deploy-workflows:
@@ -43,8 +44,20 @@ jobs:
           fi
 
       - name: Authenticate GitHub CLI
+        env:
+          ORG_GITHUB_TOKEN: ${{ secrets.ORG_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+          # Use PAT if available, otherwise fall back to GITHUB_TOKEN
+          # Note: GITHUB_TOKEN may not have access to private org repos
+          # Create a PAT with 'repo' scope and store as ORG_GITHUB_TOKEN secret
+          if [ -n "$ORG_GITHUB_TOKEN" ]; then
+            echo "$ORG_GITHUB_TOKEN" | gh auth login --with-token
+            echo "✅ Using ORG_GITHUB_TOKEN (PAT)"
+          else
+            echo "$GITHUB_TOKEN" | gh auth login --with-token
+            echo "⚠️ Using GITHUB_TOKEN (may have limited org repo access)"
+          fi
           gh auth status
 
       - name: Make script executable
@@ -53,8 +66,13 @@ jobs:
       - name: Deploy workflows to all repositories
         env:
           CI: true
+          # ORG_GITHUB_TOKEN should be a PAT with 'repo' scope for private org repos
+          # If not set, falls back to GITHUB_TOKEN (may have limited access)
+          ORG_GITHUB_TOKEN: ${{ secrets.ORG_GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Use PAT if available, otherwise use GITHUB_TOKEN
+          export GITHUB_TOKEN=${ORG_GITHUB_TOKEN:-$GITHUB_TOKEN}
           bash scripts/deploy-workflows.sh
 
       - name: Summary

@@ -78,6 +78,22 @@ if ! gh auth status &> /dev/null; then
   exit 1
 fi
 
+# Display authentication info
+echo -e "${BLUE}📋 Authentication Info:${NC}"
+gh auth status
+echo ""
+
+# Test access to organization
+echo -e "${YELLOW}🔍 Testing organization access...${NC}"
+if gh api orgs/$ORG &>/dev/null; then
+  echo -e "${GREEN}✅ Can access organization: ${ORG}${NC}"
+else
+  echo -e "${RED}❌ Cannot access organization: ${ORG}${NC}"
+  echo -e "${YELLOW}⚠️  You may need to use a Personal Access Token (PAT) instead of GITHUB_TOKEN${NC}"
+  echo -e "${YELLOW}   Set it as: GITHUB_TOKEN=<your-pat>${NC}"
+fi
+echo ""
+
 SUCCESS_COUNT=0
 FAILED_REPOS=()
 
@@ -88,6 +104,18 @@ for repo in "${REPOS[@]}"; do
   echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   
   REPO_DIR="$TEMP_DIR/$repo"
+  
+  # Check if repository exists and is accessible
+  echo -e "${YELLOW}🔍 Checking repository access...${NC}"
+  if ! gh repo view "$ORG/$repo" &>/dev/null; then
+    echo -e "${RED}❌ Repository ${ORG}/${repo} not found or not accessible${NC}"
+    echo -e "${YELLOW}   Possible reasons:${NC}"
+    echo -e "${YELLOW}   - Repository doesn't exist${NC}"
+    echo -e "${YELLOW}   - GitHub token doesn't have access${NC}"
+    echo -e "${YELLOW}   - Repository is private and requires organization access${NC}"
+    FAILED_REPOS+=("$repo")
+    continue
+  fi
   
   # Clone repository
   echo -e "${YELLOW}📥 Cloning repository...${NC}"
