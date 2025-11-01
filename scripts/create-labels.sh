@@ -6,6 +6,11 @@
 # This script creates all required labels across all ORISO repositories
 # Run this in GitHub Codespaces or any environment with GitHub CLI installed
 #
+# Features:
+#   - Prevents duplicate labels (checks existence before creating)
+#   - Updates existing labels if they already exist
+#   - Safe to run multiple times (idempotent)
+#
 # Usage:
 #   chmod +x create-labels.sh
 #   ./create-labels.sh
@@ -103,7 +108,17 @@ check_auth() {
     fi
 }
 
-# Function to create a single label
+# Function to check if label exists
+label_exists() {
+    local REPO=$1
+    local NAME=$2
+    local FULL_REPO="$ORGANIZATION/$REPO"
+    
+    gh label list --repo "$FULL_REPO" --json name --jq ".[] | select(.name==\"$NAME\") | .name" 2>/dev/null | grep -q "^$NAME$"
+}
+
+# Function to create or update a single label
+# This function prevents duplicates by checking existence first
 create_label() {
     local REPO=$1
     local NAME=$2
@@ -112,17 +127,32 @@ create_label() {
     
     local FULL_REPO="$ORGANIZATION/$REPO"
     
-    if [ -z "$DESC" ]; then
-        gh label create "$NAME" \
-            --repo "$FULL_REPO" \
-            --color "$COLOR" \
-            --force 2>/dev/null && return 0 || return 1
+    # This function is called AFTER checking if label exists
+    # So we know whether to create or update
+    if label_exists "$REPO" "$NAME"; then
+        # Label exists - update it (never creates duplicate)
+        if [ -z "$DESC" ]; then
+            gh label edit "$NAME" \
+                --repo "$FULL_REPO" \
+                --color "$COLOR" 2>/dev/null && return 0 || return 1
+        else
+            gh label edit "$NAME" \
+                --repo "$FULL_REPO" \
+                --color "$COLOR" \
+                --description "$DESC" 2>/dev/null && return 0 || return 1
+        fi
     else
-        gh label create "$NAME" \
-            --repo "$FULL_REPO" \
-            --color "$COLOR" \
-            --description "$DESC" \
-            --force 2>/dev/null && return 0 || return 1
+        # Label doesn't exist - create it (safe, no duplicate possible)
+        if [ -z "$DESC" ]; then
+            gh label create "$NAME" \
+                --repo "$FULL_REPO" \
+                --color "$COLOR" 2>/dev/null && return 0 || return 1
+        else
+            gh label create "$NAME" \
+                --repo "$FULL_REPO" \
+                --color "$COLOR" \
+                --description "$DESC" 2>/dev/null && return 0 || return 1
+        fi
     fi
 }
 
@@ -139,16 +169,23 @@ create_repo_labels() {
     for LABEL_DEF in "${LABELS[@]}"; do
         IFS='|' read -r NAME COLOR DESC <<< "$LABEL_DEF"
         
-        if create_label "$REPO" "$NAME" "$COLOR" "$DESC"; then
-            echo -e "  ${GREEN}✓${NC} $NAME"
-            ((SUCCESS++))
-        else
-            EXISTING=$(gh label list --repo "$ORGANIZATION/$REPO" --json name --jq ".[] | select(.name==\"$NAME\") | .name" 2>/dev/null)
-            if [ "$EXISTING" == "$NAME" ]; then
-                echo -e "  ${YELLOW}⊘${NC} $NAME (already exists)"
-                ((SKIPPED++))
+        # Check if label already exists before attempting to create/update
+        if label_exists "$REPO" "$NAME"; then
+            # Label exists - update it
+            if create_label "$REPO" "$NAME" "$COLOR" "$DESC"; then
+                echo -e "  ${YELLOW}↻${NC} $NAME (updated existing)"
+                ((SUCCESS++))
             else
-                echo -e "  ${RED}✗${NC} $NAME (failed)"
+                echo -e "  ${YELLOW}⊘${NC} $NAME (exists, update failed - keeping existing)"
+                ((SKIPPED++))
+            fi
+        else
+            # Label doesn't exist - create it
+            if create_label "$REPO" "$NAME" "$COLOR" "$DESC"; then
+                echo -e "  ${GREEN}✓${NC} $NAME (created)"
+                ((SUCCESS++))
+            else
+                echo -e "  ${RED}✗${NC} $NAME (creation failed)"
                 ((FAILED++))
             fi
         fi
@@ -174,13 +211,17 @@ main() {
     echo -e "${BLUE}🏷️  Labels per repository: ${#LABELS[@]}${NC}"
     echo -e "${YELLOW}⏱️  Estimated time: ~2-3 minutes${NC}"
     
-    # Ask for confirmation
-    echo -e "\n${YELLOW}⚠️  This will create labels in ${#REPOS[@]} repositories.${NC}"
-    read -p "Continue? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${RED}Cancelled.${NC}"
-        exit 0
+    # Ask for confirmation (skip if non-interactive or CI environment)
+    if [ -z "$CI" ] && [ -t 0 ]; then
+        echo -e "\n${YELLOW}⚠️  This will create labels in ${#REPOS[@]} repositories.${NC}"
+        read -p "Continue? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${RED}Cancelled.${NC}"
+            exit 0
+        fi
+    else
+        echo -e "\n${BLUE}Running in non-interactive mode (CI/Automated)${NC}"
     fi
     
     # Process each repository
