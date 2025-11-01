@@ -1,0 +1,14 @@
+# Work Type Labels (for GitHub Projects Custom Field mapping)
+# These align with your GitHub Projects Custom Field: Type (Epic, Story, Task, Bug)
+story: ["feature/*", "feat/*", "story/*"]
+task: ["task/*", "chore/*", "refactor/*", "devops/*", "infra/*", "docs/*"]
+bug: ["fix/*", "bugfix/*", "bug/*"]
+hotfix: ["hotfix/*"]
+
+# Area/Component Labels (for flexible filtering in GitHub Projects)
+# Branch-based labeling - file-based labeling is handled in workflow
+frontend: ["frontend/*"]
+backend: ["backend/*", "api/*"]
+api: ["api/*"]
+infra: ["infra/*", "devops/*"]
+docs: ["docs/*"]

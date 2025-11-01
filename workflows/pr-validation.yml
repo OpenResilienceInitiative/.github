@@ -1,0 +1,252 @@
+name: PR Validation & Quality Checks
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+  security-events: write
+
+jobs:
+  validate-and-label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 1️⃣ Validate Semantic PR Title
+      - name: Validate semantic PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            chore
+            refactor
+            docs
+            ci
+            perf
+            test
+          requireScope: false
+          scopes: []
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            must start with a lowercase letter.
+
+      # 2️⃣ Validate PR Body Completeness
+      - name: Validate PR body completeness
+        uses: actions/github-script@v7
+        id: validate-body
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+            
+            // Check for unchecked items
+            const uncheckedItems = (body.match(/\[ \]/g) || []).length;
+            
+            // Check minimum body length (at least 100 chars excluding template placeholders)
+            const minBodyLength = 100;
+            const bodyWithoutPlaceholders = body
+              .replace(/\[Link to doc\]\(https:\/\/\.\.\.\)/g, '')
+              .replace(/\[Link\]\(https:\/\/\.\.\.\)/g, '')
+              .replace(/https:\/\/\.\.\./g, '')
+              .trim();
+            
+            const errors = [];
+            
+            if (uncheckedItems > 0) {
+              errors.push(`❌ Found ${uncheckedItems} unchecked checklist item(s). Please complete all checklist items.`);
+            }
+            
+            if (bodyWithoutPlaceholders.length < minBodyLength) {
+              errors.push(`❌ PR description is too short (${bodyWithoutPlaceholders.length} chars). Please provide a detailed summary (minimum ${minBodyLength} chars).`);
+            }
+            
+            // Check if "Summary" section is filled
+            const summaryMatch = body.match(/##\s+(Summary|📝 Summary|🧾 Summary)[\s\S]*?$/m);
+            if (!summaryMatch || summaryMatch[0].length < 50) {
+              errors.push('❌ Summary section appears incomplete. Please provide detailed information about what changed and why.');
+            }
+            
+            if (errors.length > 0) {
+              core.setFailed(errors.join('\n\n'));
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## ⚠️ PR Validation Failed\n\n${errors.join('\n\n')}\n\nPlease update your PR description to meet the requirements.`
+              });
+            } else {
+              console.log('✅ PR body validation passed');
+            }
+
+      # 3️⃣ Auto Label Pull Requests (Work Type & Area)
+      - name: Auto label PRs (branch-based)
+        uses: TimonVS/pr-labeler-action@v4
+        with:
+          configuration-path: .github/pr-labeler.yml
+          skip-draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 4️⃣ Smart Labeling (Work Type, Area, Priority, State)
+      - name: Smart labeling based on PR content
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const title = (pr.title || '').toLowerCase();
+            const body = (pr.body || '').toLowerCase();
+            const branch = (pr.head.ref || '').toLowerCase();
+            const labelsToAdd = [];
+            
+            // Work Type Detection (Story, Task, Bug)
+            // Note: This is supplemental - branch-based labeling takes priority
+            if (!title.match(/^(feat|feature|story)/) && 
+                !title.match(/^(fix|bug|bugfix)/) && 
+                !branch.match(/^(feature|feat|story)/) &&
+                !branch.match(/^(fix|bug|bugfix)/)) {
+              // Default to 'task' if PR title suggests technical work
+              if (title.match(/^(chore|refactor|perf|test|ci|docs|infra|devops)/) || 
+                  branch.match(/^(task|chore|refactor|devops|infra|docs)/)) {
+                labelsToAdd.push('task');
+              }
+            }
+            
+            // Area Detection based on changed files
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const filePaths = files.data.map(f => f.filename);
+            const frontendPatterns = ['.tsx', '.ts', '.jsx', '.js', '.css', '.scss', '.vue'];
+            const backendPatterns = ['.java', '.py', '.go', '.rs', 'pom.xml', 'requirements.txt'];
+            const databasePatterns = ['.sql', '/migrations/', '/schema/'];
+            const apiPatterns = ['/api/', '/routes/', '/controllers/'];
+            const infraPatterns = ['.github/', 'Dockerfile', '.yml', '.yaml', '/kubernetes/', '/terraform/'];
+            const docsPatterns = ['.md', '/docs/', '/documentation/'];
+            
+            const hasFrontend = filePaths.some(f => frontendPatterns.some(p => f.includes(p)));
+            const hasBackend = filePaths.some(f => backendPatterns.some(p => f.includes(p)));
+            const hasDatabase = filePaths.some(f => databasePatterns.some(p => f.includes(p)));
+            const hasAPI = filePaths.some(f => apiPatterns.some(p => f.includes(p)));
+            const hasInfra = filePaths.some(f => infraPatterns.some(p => f.includes(p)));
+            const hasDocs = filePaths.some(f => docsPatterns.some(p => f.includes(p)));
+            
+            if (hasFrontend && !hasBackend) labelsToAdd.push('frontend');
+            if (hasBackend && !hasFrontend) labelsToAdd.push('backend');
+            if (hasAPI) labelsToAdd.push('api');
+            if (hasDatabase) labelsToAdd.push('database');
+            if (hasInfra) labelsToAdd.push('infra');
+            if (hasDocs && filePaths.length <= 5) labelsToAdd.push('docs');
+            
+            // Priority Detection based on keywords
+            const priorityKeywords = {
+              'P0-Critical': ['critical', 'urgent', 'p0', 'hotfix', 'production down', 'security', 'data loss'],
+              'P1-High': ['high priority', 'p1', 'important', 'blocker', 'major'],
+              'P2-Medium': ['medium', 'p2'],
+              'P3-Low': ['low', 'p3', 'nice to have']
+            };
+            
+            for (const [priority, keywords] of Object.entries(priorityKeywords)) {
+              if (keywords.some(k => title.includes(k) || body.includes(k))) {
+                labelsToAdd.push(priority);
+                break;
+              }
+            }
+            
+            // State Detection
+            if (title.includes('wip') || title.includes('draft') || title.includes('[wip]') || title.includes('[draft]')) {
+              labelsToAdd.push('needs-refinement');
+            }
+            
+            // Breaking Change Detection
+            const breakingKeywords = ['breaking', 'breaking change', '!:', 'major', '⚠️'];
+            if (breakingKeywords.some(k => title.includes(k) || body.includes(k))) {
+              labelsToAdd.push('breaking-change');
+            }
+            
+            // Add all detected labels
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labelsToAdd
+              });
+            }
+
+      # 5️⃣ Size Label Based on Changes
+      - name: Auto-size label
+        uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/size-labeler.yml
+          sync-labels: true
+        continue-on-error: true
+
+      # 6️⃣ Security Scan
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.28.0
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      # 7️⃣ Code Quality Checks
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "## 🔍 Code Quality Check Results" >> $GITHUB_STEP_SUMMARY
+          if grep -r "TODO\|FIXME" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.java" --include="*.py" . 2>/dev/null | grep -v "node_modules" | grep -v ".git" | head -10; then
+            echo "⚠️ **Warning:** Found TODO/FIXME comments. Please address or document them." >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Found TODO/FIXME comments. Please address or document them."
+            exit 0  # Warning, not blocking
+          else
+            echo "✅ No TODO/FIXME comments found." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for console.log (non-test files)
+        run: |
+          echo "## 🔍 Console.log Check Results" >> $GITHUB_STEP_SUMMARY
+          if grep -r "console\.log" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" . 2>/dev/null | grep -v "node_modules" | grep -v ".git" | grep -v "test" | grep -v "spec" | grep -v "__tests__"; then
+            echo "⚠️ **Warning:** Found console.log statements. Please remove before merging." >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Found console.log statements. Please remove before merging."
+            exit 0  # Warning, not blocking
+          else
+            echo "✅ No console.log statements found (excluding test files)." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for hardcoded secrets patterns
+        run: |
+          echo "## 🔍 Security Pattern Check" >> $GITHUB_STEP_SUMMARY
+          SECRET_PATTERNS="password|secret|api_key|apikey|access_token|private_key|PRIVATE_KEY"
+          if grep -riE "$SECRET_PATTERNS" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.java" --include="*.py" . 2>/dev/null | grep -v "node_modules" | grep -v ".git" | grep -v "test" | grep -v "spec" | grep -v "package-lock.json" | grep -v "yarn.lock"; then
+            echo "⚠️ **Warning:** Potential hardcoded secrets detected. Please review and use environment variables or secrets management." >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Potential hardcoded secrets detected. Please review."
+            exit 0  # Warning, not blocking
+          else
+            echo "✅ No obvious hardcoded secrets patterns found." >> $GITHUB_STEP_SUMMARY
+          fi
