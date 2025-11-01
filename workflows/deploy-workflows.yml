@@ -3,11 +3,12 @@ name: Deploy Workflows to All Repositories
 on:
   push:
     paths:
-      - '.github/workflows/pr-validation-caller.yml'
-      - '.github/workflows/pr-validation.yml'
-      - '.github/pr-labeler.yml'
-      - '.github/size-labeler.yml'
-      - '.github/scripts/deploy-workflows.sh'
+      - 'workflows/deploy-workflows.yml'
+      - 'workflows/pr-validation-caller.yml'
+      - 'workflows/pr-validation.yml'
+      - 'pr-labeler.yml'
+      - 'size-labeler.yml'
+      - 'scripts/deploy-workflows.sh'
     branches:
       - main
       - master
@@ -44,14 +45,14 @@ jobs:
           gh auth status
 
       - name: Make script executable
-        run: chmod +x .github/scripts/deploy-workflows.sh
+        run: chmod +x scripts/deploy-workflows.sh
 
       - name: Deploy workflows to all repositories
         env:
           CI: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          bash .github/scripts/deploy-workflows.sh
+          bash scripts/deploy-workflows.sh
 
       - name: Summary
         if: always()
