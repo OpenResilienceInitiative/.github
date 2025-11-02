@@ -4,8 +4,8 @@ on:
   push:
     paths:
       - '.github/workflows/deploy-workflows.yml'
-      - '.github/.github/workflows/pr-validation-caller.yml'
-      - '.github/.github/workflows/pr-validation.yml'
+      - '.github/workflows/pr-validation-caller.yml'
+      - '.github/workflows/pr-validation.yml'
       - 'pr-labeler.yml'
       - 'size-labeler.yml'
       # PR templates are centralized - no need to trigger on template changes
