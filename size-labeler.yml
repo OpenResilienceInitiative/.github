@@ -1,24 +1,16 @@
-# PR Size Labels based on file changes
-S: # 0-9 files
-  changed-files:
-    - any-glob-to-any-file: ['**/*']
-    - count: 1
-      maximum: 9
+# PR Size Labels - Simple format for actions/labeler
+# Note: Size labeling is handled by custom script in workflow (file count logic)
+# Note: 1-9 files → S, 10-29 files → M, 30-99 files → L, 100+ files → XL
+# This file exists for labeler action compatibility but size is set programmatically
+S:
+  - '**/*'
 
-M: # 10-29 files
-  changed-files:
-    - any-glob-to-any-file: ['**/*']
-    - count: 10
-      maximum: 29
+M:
+  - '**/*'
 
-L: # 30-99 files
-  changed-files:
-    - any-glob-to-any-file: ['**/*']
-    - count: 30
-      maximum: 99
+L:
+  - '**/*'
 
-XL: # 100+ files
-  changed-files:
-    - any-glob-to-any-file: ['**/*']
-    - count: 100
+XL:
+  - '**/*'
 

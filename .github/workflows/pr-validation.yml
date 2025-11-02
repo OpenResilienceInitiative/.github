@@ -7,6 +7,7 @@ permissions:
   pull-requests: write
   contents: read
   security-events: write
+  actions: read
 
 jobs:
   validate-and-label:
@@ -244,14 +245,34 @@ jobs:
               });
             }
 
-      # 5️⃣ Size Label Based on Changes
-      - name: Auto-size label
-        uses: actions/labeler@v4
+      # 5️⃣ Size Label Based on File Count
+      - name: Auto-size label based on file count
+        uses: actions/github-script@v7
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          configuration-path: .github/size-labeler.yml
-          sync-labels: true
-        continue-on-error: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const fileCount = files.data.length;
+            let sizeLabel = '';
+            
+            if (fileCount >= 100) sizeLabel = 'XL';
+            else if (fileCount >= 30) sizeLabel = 'L';
+            else if (fileCount >= 10) sizeLabel = 'M';
+            else if (fileCount >= 1) sizeLabel = 'S';
+            
+            if (sizeLabel) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [sizeLabel]
+              });
+            }
 
       # 6️⃣ Security Scan
       - name: Run Trivy vulnerability scanner
@@ -278,6 +299,7 @@ jobs:
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always() && steps.check-sarif.outputs.exists == 'true'
+        continue-on-error: true
         with:
           sarif_file: 'trivy-results.sarif'
 
