@@ -6,7 +6,7 @@ PR templates are now **centralized** in the `.github` repository at the **root l
 
 ```
 .github/
-├── pull_request_template/          ← Templates directory (CORRECT location)
+├── PULL_REQUEST_TEMPLATE/          ← Templates directory (CORRECT location)
 │   ├── architecture.md
 │   ├── backend.md
 │   ├── bugfix.md
@@ -27,9 +27,10 @@ For organization-wide PR templates to work, follow GitHub's exact specifications
 2. **Repository Visibility**: The `.github` repository **must be public** (or accessible to all target repositories) for templates to be accessible organization-wide.
 
 3. **Correct Location**: Templates **must** be at:
-   - `pull_request_template/` (lowercase, with underscore) ✅ **CURRENT - CORRECT**
+   - `PULL_REQUEST_TEMPLATE/` (uppercase, with underscore) ✅ **CURRENT - CORRECT**
    - Located at the **root** of the `.github` repository ✅
    - NOT nested in `.github/.github/` ❌
+   - Per GitHub docs: `.github/PULL_REQUEST_TEMPLATE/` for multiple templates
 
 4. **File Format**: 
    - All templates must be `.md` (Markdown) files ✅
@@ -75,23 +76,23 @@ Must be exactly: .github
 **Check 3: Template Location** ✅ **VERIFIED - CORRECT**
 ```bash
 # Current location (CORRECT):
-.github/pull_request_template/  ✅ Root level, lowercase, underscores
+.github/PULL_REQUEST_TEMPLATE/  ✅ Root level, UPPERCASE, underscores
 
 # Wrong locations:
-.github/.github/pull_request_template/  ❌ Nested (wrong)
-PULL_REQUEST_TEMPLATE/                  ❌ Wrong case
-pull-request-template/                  ❌ Wrong separator
+.github/.github/PULL_REQUEST_TEMPLATE/  ❌ Nested (wrong)
+pull_request_template/                 ❌ Wrong case (lowercase)
+pull-request-template/                 ❌ Wrong separator
 ```
 
 **Check 4: File Names**
 - ✅ All templates are `.md` files
-- ✅ Directory name: `pull_request_template` (lowercase, underscore)
+- ✅ Directory name: `PULL_REQUEST_TEMPLATE` (UPPERCASE, underscore)
 - ✅ Files are lowercase: `frontend.md`, `backend.md`, etc.
 
 **Check 5: Single Template File Conflict** ⚠️ **CRITICAL**
 - **DO NOT** have `pull_request_template.md` at the root of `.github` repository
 - A single file at root **overrides** the directory-based templates and prevents the dropdown
-- You must have **ONLY** the `pull_request_template/` directory (not both)
+- You must have **ONLY** the `PULL_REQUEST_TEMPLATE/` directory (not both)
 - Delete any `pull_request_template.md` file at the root level
 
 **Check 6: Repository Override**
