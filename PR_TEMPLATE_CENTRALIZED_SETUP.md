@@ -88,11 +88,17 @@ pull-request-template/                  ❌ Wrong separator
 - ✅ Directory name: `pull_request_template` (lowercase, underscore)
 - ✅ Files are lowercase: `frontend.md`, `backend.md`, etc.
 
-**Check 5: Repository Override**
+**Check 5: Single Template File Conflict** ⚠️ **CRITICAL**
+- **DO NOT** have `pull_request_template.md` at the root of `.github` repository
+- A single file at root **overrides** the directory-based templates and prevents the dropdown
+- You must have **ONLY** the `pull_request_template/` directory (not both)
+- Delete any `pull_request_template.md` file at the root level
+
+**Check 6: Repository Override**
 - If a repository has its own `pull_request_template/` directory OR `PULL_REQUEST_TEMPLATE.md` file, it **overrides** organization templates for that specific repository only
 - Organization templates apply to all repos **without** local templates
 
-**Check 6: Refresh After Changes**
+**Check 7: Refresh After Changes**
 - After pushing template updates, you may need to refresh or create a new PR draft to see the updated templates
 
 ## 📝 Next Steps
