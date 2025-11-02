@@ -1,5 +1,3 @@
-# 🐞 Bugfix PR Template
-
 **Linked Bug:** # (e.g., #123)
 
 ## 🧾 Summary

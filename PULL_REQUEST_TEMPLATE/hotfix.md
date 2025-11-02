@@ -1,5 +1,3 @@
-# 🩹 Hotfix PR Template
-
 **Linked Incident ID:** #
 
 ## 🧾 Summary

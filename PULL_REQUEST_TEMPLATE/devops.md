@@ -1,5 +1,3 @@
-# 🚀 DevOps PR Template
-
 **Linked Task:** # (e.g., #101)
 
 ---

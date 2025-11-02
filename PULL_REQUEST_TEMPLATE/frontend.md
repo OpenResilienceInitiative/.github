@@ -1,5 +1,3 @@
-# 🧱 Frontend PR Template
-
 **Linked Issue:** # (e.g., #45)
 
 ---
@@ -45,7 +43,7 @@
 ## 🧪 Testing Details
 - **Browsers tested:**  
 - **Screen sizes tested:**  
-- **Environment:** [ ] Dev [ ] Stage [ ] Prod  
+- **Environment:** [ ] Dev [ ] Beta [ ] Prod  
 
 ---
 

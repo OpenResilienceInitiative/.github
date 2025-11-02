@@ -1,5 +1,3 @@
-# 🧠 Architecture PR Template
-
 **Linked Epic/Task:** #
 
 ## 🏗️ Summary

@@ -1,5 +1,3 @@
-# 📘 Documentation PR Template
-
 **Linked Task:** #
 
 ## Summary

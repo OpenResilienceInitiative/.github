@@ -1,5 +1,3 @@
-# 🧾 Generic PR Template
-
 **Linked Issue:** #
 
 ## Summary

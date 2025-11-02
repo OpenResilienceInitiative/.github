@@ -1,5 +1,3 @@
-# ⚙️ Backend PR Template
-
 **Linked Issue:** # (e.g., #72)
 
 ## 📝 Summary
@@ -32,7 +30,7 @@ Provide the commands, test logs, or screenshots that confirm migrations were app
 | 📘 Related Docs | [Documentation link](https://...) |
 
 ## 🧪 Testing Details
-- Environment tested: [ ] Dev [ ] Stage [ ] Prod
+- Environment tested: [ ] Dev [ ] Beta [ ] Prod
 - Postman/API test results attached.
 
 ## 💬 Notes
