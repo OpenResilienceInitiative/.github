@@ -255,7 +255,7 @@ jobs:
 
       # 6️⃣ Security Scan
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.33
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
           scan-type: 'fs'
