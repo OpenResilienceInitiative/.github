@@ -56,7 +56,7 @@ jobs:
       - name: Make script executable
         run: chmod +x scripts/deploy-workflows.sh
 
-      - name: Deploy workflows to all repositories
+      - name: Deploy workflows to all repositories (automatic)
         env:
           CI: true
           # GitHub CLI automatically uses GITHUB_TOKEN from environment
@@ -64,6 +64,10 @@ jobs:
           # Otherwise falls back to default GITHUB_TOKEN (may have limited access)
           ORG_GITHUB_TOKEN: ${{ secrets.ORG_GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Automatic deployment: Push directly to main (no manual PR merging needed)
+          DIRECT_PUSH: true
+          # Fallback: Auto-merge PRs if direct push fails
+          AUTO_MERGE: true
         run: |
           # Use PAT if available, otherwise use GITHUB_TOKEN
           export GITHUB_TOKEN=${ORG_GITHUB_TOKEN:-$GITHUB_TOKEN}
@@ -72,22 +76,31 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          echo "## ✅ Workflow Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Centralized Workflow Management Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The PR validation workflow and config files have been deployed to all ORISO repositories." >> $GITHUB_STEP_SUMMARY
+          echo "The PR validation workflow has been deployed/managed across all ORISO repositories." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**PR Templates:** Centralized in \`.github\` repository - automatically available to all repositories." >> $GITHUB_STEP_SUMMARY
+          echo "**✨ Centralized Management:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ PR validation workflow deployed to all repositories" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Config files (pr-labeler.yml, size-labeler.yml) are centralized and auto-fetched" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ PR templates are centralized in \`.github\` repository" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**What was done:**" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Copied PR validation workflow to all repositories" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Copied PR labeler configuration" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Copied size labeler configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Deployed PR validation workflow to all repositories" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Removed any local config file copies (now centralized)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Created/updated pull requests in each repository" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** PR templates are centralized in \`.github\` repository and automatically available to all organization repositories." >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Created pull requests in each repository" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
-          echo "1. ✅ Review and merge the pull requests in each repository" >> $GITHUB_STEP_SUMMARY
-          echo "2. ✅ Verify workflows are active: Go to Actions tab in each repo" >> $GITHUB_STEP_SUMMARY
-          echo "3. ✅ Create a test PR to see the workflow in action" >> $GITHUB_STEP_SUMMARY
+          echo "**🚀 Automatic Operation (No Manual Action Needed):**" >> $GITHUB_STEP_SUMMARY
+          echo "Once deployed, every PR in all repositories automatically triggers:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Semantic title validation" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ PR body completeness checks" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Auto-labeling (work type, area, priority, size)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security scanning (Trivy)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Code quality checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**🔄 Continuous Automation:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Workflow deploys automatically on file changes (pushes directly to main, no manual PR merging)" >> $GITHUB_STEP_SUMMARY
+          echo "- Manual trigger available via workflow_dispatch when needed" >> $GITHUB_STEP_SUMMARY
+          echo "- All validations and labeling happen automatically on every PR" >> $GITHUB_STEP_SUMMARY
 

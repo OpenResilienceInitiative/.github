@@ -19,6 +19,62 @@ jobs:
         with:
           fetch-depth: 0
 
+      # 0️⃣ Fetch centralized config files (maximize reuse)
+      - name: Fetch centralized labeler configs from .github repository
+        uses: actions/checkout@v4
+        with:
+          repository: OpenResilienceInitiative/.github
+          path: .github-central
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Use centralized config files (single source of truth)
+        run: |
+          echo "## 📋 Config File Management (Centralized)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✨ **Single Source of Truth**: Config files are fetched from `OpenResilienceInitiative/.github`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create .github directory if it doesn't exist
+          mkdir -p .github
+          
+          # Verify centralized repository checkout succeeded
+          if [ ! -d .github-central ]; then
+            echo "❌ Failed to checkout centralized .github repository" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Failed to checkout centralized .github repository"
+            exit 1
+          fi
+          
+          # Copy pr-labeler.yml from centralized (NO local copies needed)
+          if [ ! -f .github-central/pr-labeler.yml ]; then
+            echo "❌ **pr-labeler.yml**: Not found in centralized repository" >> $GITHUB_STEP_SUMMARY
+            echo "❌ pr-labeler.yml not found in OpenResilienceInitiative/.github"
+            exit 1
+          fi
+          
+          cp .github-central/pr-labeler.yml .github/pr-labeler.yml
+          echo "✅ **pr-labeler.yml**: Fetched from `OpenResilienceInitiative/.github`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Copied centralized pr-labeler.yml"
+          
+          # Copy size-labeler.yml from centralized (NO local copies needed)
+          if [ ! -f .github-central/size-labeler.yml ]; then
+            echo "❌ **size-labeler.yml**: Not found in centralized repository" >> $GITHUB_STEP_SUMMARY
+            echo "❌ size-labeler.yml not found in OpenResilienceInitiative/.github"
+            exit 1
+          fi
+          
+          cp .github-central/size-labeler.yml .github/size-labeler.yml
+          echo "✅ **size-labeler.yml**: Fetched from `OpenResilienceInitiative/.github`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Copied centralized size-labeler.yml"
+          
+          # Verify files are in place
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Config files ready for labeler actions**" >> $GITHUB_STEP_SUMMARY
+          echo "   - `.github/pr-labeler.yml` (from centralized)" >> $GITHUB_STEP_SUMMARY
+          echo "   - `.github/size-labeler.yml` (from centralized)" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "✅ All config files fetched from centralized repository - no local copies needed!"
+
       # 1️⃣ Validate Semantic PR Title
       - name: Validate semantic PR title
         uses: amannn/action-semantic-pull-request@v5

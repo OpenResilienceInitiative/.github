@@ -6,7 +6,7 @@ This guide explains how PR validation workflows are deployed across all ORISO Pl
 
 ## 🎯 Overview
 
-Instead of copying the same workflow file to all 17 repositories, we use GitHub's **reusable workflows** feature:
+Instead of copying the same workflow file to all 16 repositories, we use GitHub's **reusable workflows** feature:
 
 1. **Reusable workflow** - Defined once in `.github` repository (the "source of truth")
 2. **Caller workflow** - Simple file in each repository that calls the reusable workflow
@@ -36,8 +36,7 @@ Instead of copying the same workflow file to all 17 repositories, we use GitHub'
 │  └── pr-validation.yml     ← Calls reusable workflow   │
 │                                                          │
 │  .github/                                                │
-│  ├── pr-labeler.yml          ← Config (copied)         │
-│  └── size-labeler.yml        ← Config (copied)         │
+│  (No config files - auto-fetched from centralized repo) │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -74,11 +73,18 @@ jobs:
     uses: OpenResilienceInitiative/.github/.github/workflows/pr-validation.yml@main
 ```
 
-### 3. Configuration Files
+### 3. Configuration Files (Centralized - NO Local Copies Needed)
 
-These must exist in each repository:
-- `.github/pr-labeler.yml` - Branch-based labeling rules
-- `.github/size-labeler.yml` - PR size classification
+**✨ Single Source of Truth:** Config files are automatically fetched from the centralized `.github` repository during workflow execution.
+
+**Centralized Location:** `.github/pr-labeler.yml` and `.github/size-labeler.yml` in the `.github` repository.
+
+**⚠️ Important:** Do NOT create local copies of these files in individual repositories. The workflow fetches them automatically from the centralized repository. Having local copies defeats the purpose of centralization and creates maintenance burden across 16 repositories.
+
+- `.github/pr-labeler.yml` - Branch-based labeling rules (automatically fetched from centralized repo)
+- `.github/size-labeler.yml` - PR size classification (automatically fetched from centralized repo)
+
+**To update configs:** Edit files in `.github` repository → All repositories automatically use updated configs on next PR (no deployment needed!)
 
 ## 🚀 Deployment
 
@@ -94,16 +100,23 @@ These must exist in each repository:
 
 📖 **See**: [Setup Workflow Deployment](./SETUP_WORKFLOW_DEPLOYMENT.md) for detailed instructions.
 
-### Automatic Deployment (Recommended)
+### Automatic Deployment (Fully Automated - No Manual Action Needed)
 
 When you update workflows or configs in `.github` repository:
 
 1. **Push changes** to `.github` repository
 2. **Deploy workflow triggers automatically**
-3. **Script creates PRs** in all 17 repositories
-4. **Review and merge** PRs to activate workflows
+3. **Workflows automatically deployed** to all 16 repositories (pushes directly to main)
+4. **Done!** No manual PR merging needed
 
 **Workflow:** `.github/workflows/deploy-workflows.yml`
+
+**✨ Fully Automatic:**
+- Deploys directly to main branch (no PR creation)
+- Falls back to auto-merge PR if branch protection blocks direct push
+- Triggers automatically when workflow files change (push-based)
+- Manual trigger available via workflow_dispatch if needed
+- All changes reflect across all repositories automatically
 
 ### Manual Deployment
 
@@ -122,13 +135,18 @@ bash deploy-workflows.sh
 
 When you run the deployment:
 
-| File | Source | Destination | Purpose |
-|------|--------|-------------|---------|
-| `pr-validation.yml` | `.github/workflows/pr-validation-caller.yml` | `{repo}/.github/workflows/pr-validation.yml` | Calls reusable workflow |
-| `pr-labeler.yml` | `.github/pr-labeler.yml` | `{repo}/.github/pr-labeler.yml` | Labeling rules |
-| `size-labeler.yml` | `.github/size-labeler.yml` | `{repo}/.github/size-labeler.yml` | Size classification |
+| File | Source | Destination | Purpose | Status |
+|------|--------|-------------|---------|--------|
+| `pr-validation.yml` | `.github/workflows/pr-validation-caller.yml` | `{repo}/.github/workflows/pr-validation.yml` | Calls reusable workflow | **Required** |
+| `pr-labeler.yml` | `.github/pr-labeler.yml` | ❌ **NOT DEPLOYED** | Labeling rules | **Centralized - Auto-fetched** |
+| `size-labeler.yml` | `.github/size-labeler.yml` | ❌ **NOT DEPLOYED** | Size classification | **Centralized - Auto-fetched** |
 
-**Note:** PR templates are **centralized** in `.github/pull_request_template/` and automatically available to all organization repositories. No deployment needed!
+**✨ Single Source of Truth:**
+- ✅ Config files (`pr-labeler.yml`, `size-labeler.yml`) are **automatically fetched from centralized `.github` repository** during workflow execution
+- ✅ **DO NOT create local copies** - This eliminates duplicate maintenance across 16 repositories
+- ✅ **Zero deployment needed** - Update once in `.github` repo → All repos use updated configs immediately
+- ✅ PR templates are **centralized** in `.github/pull_request_template/` and automatically available to all organization repositories
+- ✅ **Automatic deployment** - Workflows push directly to main (no manual PR merging required)
 
 ## 📝 Updating Workflows
 
@@ -140,18 +158,24 @@ When you run the deployment:
 
 ### Updating Config Files
 
-1. **Edit** `.github/pr-labeler.yml` or `.github/size-labeler.yml`
+**✨ Centralized Update (Recommended):**
+1. **Edit** `.github/pr-labeler.yml` or `.github/size-labeler.yml` in the `.github` repository
 2. **Push** to `.github` repository
-3. **Deploy workflow runs automatically**
-4. **Review and merge** PRs in each repository
+3. **All repositories automatically use updated configs** on next PR (no redeployment needed!)
+
+**Note:** Config files are now centralized and automatically fetched during workflow execution. No need to deploy config file updates to individual repositories!
 
 ## 🎯 Benefits of This Approach
 
 ✅ **Single Source of Truth** - Update workflow logic once, applies everywhere  
+✅ **Maximized Reuse** - Config files (`pr-labeler.yml`, `size-labeler.yml`) automatically fetched from centralized repo  
+✅ **Fully Automatic Deployment** - Workflows deploy automatically (direct push to main, no manual PR merging)  
 ✅ **Version Control** - Changes tracked in `.github` repository  
-✅ **Easier Maintenance** - No need to update 17 files manually  
-✅ **Consistency** - All repos use the same validation rules  
-✅ **Centralized Updates** - Improve workflow → automatically benefits all repos  
+✅ **Easier Maintenance** - Update configs once in `.github` repo → all repos automatically use updated configs  
+✅ **Consistency** - All repos use the same validation rules and labeling configs  
+✅ **Centralized Updates** - Improve workflow or configs → automatically benefits all repos on next PR  
+✅ **No Redeployment Needed** - Config file changes take effect immediately across all repositories  
+✅ **On-Demand Sync** - Triggers automatically on changes, manual trigger available when needed  
 
 ## 🔍 Verifying Deployment
 
@@ -162,11 +186,14 @@ After deployment, verify in each repository:
    {repo}/.github/workflows/pr-validation.yml
    ```
 
-2. **Check configs exist:**
+2. **Verify NO local config files exist** (they shouldn't be there):
+   ```bash
+   # These should NOT exist - configs are fetched from centralized repo
+   ls {repo}/.github/pr-labeler.yml      # Should not exist
+   ls {repo}/.github/size-labeler.yml   # Should not exist
    ```
-   {repo}/.github/pr-labeler.yml
-   {repo}/.github/size-labeler.yml
-   ```
+   
+   **Note:** Config files are automatically fetched from centralized `.github` repository during workflow execution. Local copies should NOT exist - they create unnecessary duplication across 16 repositories.
 
 3. **Check Actions tab:**
    - Go to repository → **Actions**
@@ -177,7 +204,7 @@ After deployment, verify in each repository:
 
 ### Q: Do I need to add workflows manually to each repository?
 
-**A:** No! The deployment script does it automatically. Just run it once.
+**A:** No! The deployment script does it automatically and pushes directly to main. No manual action needed after initial setup.
 
 ### Q: What if I update the reusable workflow?
 
@@ -193,7 +220,26 @@ After deployment, verify in each repository:
 
 ### Q: What happens if a repository already has a workflow?
 
-**A:** The script will update it if the file exists, or create it if it doesn't. It's safe to run multiple times.
+**A:** The script will update it if the file exists, or create it if it doesn't. It's safe to run multiple times. All deployments are automatic and push directly to main.
+
+### Q: How does automatic deployment work?
+
+**A:** The deployment script:
+- Tries to push directly to main branch (fully automatic)
+- Falls back to creating PR with auto-merge if branch protection prevents direct push
+- Runs weekly on schedule to ensure all repositories stay in sync
+- No manual PR review or merging needed
+
+### Q: Which repositories are managed?
+
+**A:** All 16 ORISO repositories are automatically managed:
+- ORISO-Admin, ORISO-AgencyService, ORISO-ConsultingTypeService
+- ORISO-Database, ORISO-Docs, ORISO-Element, ORISO-Frontend
+- ORISO-HealthDashboard, ORISO-Keycloak, ORISO-Kubernetes
+- ORISO-Matrix, ORISO-Nginx, ORISO-Redis, ORISO-SignOZ
+- ORISO-TenantService, ORISO-UserService
+
+The `.github` repository is excluded as it's the source repository.
 
 ## 📚 Related Documentation
 
