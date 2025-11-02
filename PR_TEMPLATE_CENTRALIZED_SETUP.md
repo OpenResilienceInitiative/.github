@@ -40,18 +40,45 @@ For organization-wide PR templates to work, follow GitHub's exact specifications
 
 ## ✅ How It Works
 
-When creating a PR in **any repository** in your organization:
-1. Click "Add a description" 
-2. GitHub shows: **"Choose a template"** dropdown
-3. Select from 8 available templates:
-   - `default.md` - Generic template
-   - `frontend.md` - UI/React components
-   - `backend.md` - APIs/services
-   - `docs.md` - Documentation
-   - `bugfix.md` - Bug fixes
-   - `devops.md` - Infrastructure
-   - `architecture.md` - Major refactors
-   - `hotfix.md` - Urgent fixes
+**Important Note:** Unlike Issue templates, GitHub does **not** provide an automatic template chooser UI for Pull Requests. You need to use query parameters to select templates.
+
+### Option 1: Use Query Parameters (Manual Selection)
+
+When creating a PR, add the template name to the URL:
+
+```
+https://github.com/OpenResilienceInitiative/REPO-NAME/compare/main...branch?expand=1&template=template-name.md
+```
+
+**Available Templates:**
+- `default.md` - Generic template
+- `frontend.md` - UI/React components
+- `backend.md` - APIs/services
+- `docs.md` - Documentation
+- `bugfix.md` - Bug fixes
+- `devops.md` - Infrastructure
+- `architecture.md` - Major refactors
+- `hotfix.md` - Urgent fixes
+
+### Option 2: Auto-Populated Default Template (Current Setup)
+
+We have **both**:
+- ✅ `PULL_REQUEST_TEMPLATE.md` at root - Auto-populates as default template
+- ✅ `PULL_REQUEST_TEMPLATE/` directory - Contains 8 specialized templates
+
+**How it works:**
+1. When creating a PR, the default template (`PULL_REQUEST_TEMPLATE.md`) auto-populates
+2. The default template includes links to other templates
+3. Users can manually change the URL to select a different template using query parameters
+
+### Option 3: Create PR Links with Templates Pre-Selected
+
+You can bookmark or share links with templates pre-selected:
+
+- **Frontend PRs:** `?expand=1&template=frontend.md`
+- **Backend PRs:** `?expand=1&template=backend.md`
+- **Docs PRs:** `?expand=1&template=docs.md`
+- **Bug Fixes:** `?expand=1&template=bugfix.md`
 
 ## 🔧 Troubleshooting
 
@@ -90,10 +117,11 @@ pull-request-template/                 ❌ Wrong separator
 - ✅ Files are lowercase: `frontend.md`, `backend.md`, etc.
 
 **Check 5: Single Template File Conflict** ⚠️ **CRITICAL**
-- **DO NOT** have `pull_request_template.md` at the root of `.github` repository
-- A single file at root **overrides** the directory-based templates and prevents the dropdown
+- **DO NOT** have `PULL_REQUEST_TEMPLATE.md` or `pull_request_template.md` at the root of `.github` repository
+- A single file at root **overrides** the directory-based templates and disables template selection
 - You must have **ONLY** the `PULL_REQUEST_TEMPLATE/` directory (not both)
-- Delete any `pull_request_template.md` file at the root level
+- Delete any `PULL_REQUEST_TEMPLATE.md` or `pull_request_template.md` file at the root level
+- **Trade-off:** Single file = auto-populates but only 1 template | Directory = 8 templates but requires query parameters
 
 **Check 6: Repository Override**
 - If a repository has its own `pull_request_template/` directory OR `PULL_REQUEST_TEMPLATE.md` file, it **overrides** organization templates for that specific repository only
@@ -117,9 +145,9 @@ pull-request-template/                 ❌ Wrong separator
 
 3. **Test in Any Repository**:
    - Go to any ORISO repository
-   - Create a new PR
-   - Click "Add a description"
-   - You should see "Choose a template" dropdown
+   - Create a new PR with template: `?expand=1&template=default.md`
+   - The template should auto-populate in the description field
+   - **Note:** GitHub doesn't show a dropdown - you must use the URL parameter
 
 ## 📚 References
 

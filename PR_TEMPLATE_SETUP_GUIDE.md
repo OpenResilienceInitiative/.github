@@ -4,7 +4,24 @@
 
 ## Available Templates
 
-When creating a PR, GitHub will show you all available templates. Templates are **centralized** in the `.github` repository at `.github/PULL_REQUEST_TEMPLATE/` and automatically available to all organization repositories:
+Templates are **centralized** in the `.github` repository at `.github/PULL_REQUEST_TEMPLATE/` and automatically available to all organization repositories.
+
+**Note:** GitHub doesn't provide an automatic template chooser UI for PRs (unlike issues). To use a specific template, add `?expand=1&template=template-name.md` to your PR creation URL.
+
+### How to Use Templates
+
+**Method 1: Add template parameter to PR URL**
+1. Create your PR normally: `https://github.com/OpenResilienceInitiative/REPO/compare/main...your-branch`
+2. Add template parameter: `?expand=1&template=frontend.md`
+3. Full URL: `https://github.com/OpenResilienceInitiative/REPO/compare/main...your-branch?expand=1&template=frontend.md`
+
+**Method 2: Use GitHub CLI**
+```bash
+gh pr create --template frontend.md
+```
+
+**Method 3: Use the example from kenji-miyake's workaround**
+Create a README in your repo with template selection links (see: https://github.com/kenji-miyake/test-pr-template)
 
 | Template | Purpose | Use When |
 |----------|---------|----------|
@@ -102,9 +119,10 @@ Our PR automation includes:
 2. ✅ Follow code style guidelines
 3. ✅ Update documentation if needed
 4. ✅ Rebase on latest main branch
+5. ✅ **Add template parameter to PR URL** (e.g., `?expand=1&template=frontend.md`)
 
 ### PR Description:
-1. ✅ Select the appropriate template
+1. ✅ Select the appropriate template using URL parameter
 2. ✅ Fill out Summary section completely
 3. ✅ Complete all checklist items
 4. ✅ Link related issues using `#issue-number`
