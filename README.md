@@ -1,207 +1,312 @@
 <div align="center">
 
-# 🌱 Open Resilience Initiative
+# 🌐 Open Resilience Initiative
 
-**Building Online Counseling & Consultation Systems for Resilience and Support**
+**Organization-wide Standards & Automation**
 
-[![Website](https://img.shields.io/badge/Website-openresilience.cc-blue)](https://openresilience.cc)
-[![Documentation](https://img.shields.io/badge/Docs-Platform%20Guide-green)](https://openresilienceinitiative.mintlify.app)
 [![Organization](https://img.shields.io/badge/GitHub-Organization-lightgrey)](https://github.com/OpenResilienceInitiative)
 
 </div>
 
 ---
 
-## 🌟 About ORISO Platform
+## 📖 About This Repository
 
-**ORISO (Online Resilience Initiative Support Operations)** is a comprehensive microservices-based online counseling system designed for scalability, security, and real-time communication. The platform enables accessible mental health support through a modern, decentralized architecture.
+**`.github`** is a special repository that defines **reusable workflows and standards** for all repositories in the Open Resilience Initiative. This is not just for PR validation—it's a **framework for all automation** across the organization.
 
-### 🎯 Mission
+### What This Repository Provides
 
-To provide accessible, secure, and scalable online counseling services through open-source technology that empowers communities to deliver mental health support.
+- 📋 **PR Templates** - Standardized templates for consistent pull requests
+- ⚙️ **Reusable Workflows** - Centralized GitHub Actions for ANY automation need
+- 🏷️ **Label Configuration** - Consistent labeling rules across all repositories
+- 📚 **Documentation & Templates** - Guidelines for creating new workflows
+- 🔄 **Centralized Management** - Update once, apply everywhere automatically
 
-### ✨ Key Features
-
-- 🔐 **Secure Authentication** - Keycloak-based SSO and identity management
-- 💬 **Real-time Communication** - Matrix Protocol for encrypted chat and video calls
-- 🏗️ **Microservices Architecture** - Scalable, maintainable service-oriented design
-- ☸️ **Kubernetes Orchestration** - Cloud-native deployment and scaling
-- 📊 **Full Observability** - Distributed tracing, metrics, and monitoring
-- 🌐 **Multi-tenant Support** - Isolated tenant configurations and data
+> **💡 Key Principle:** Define workflows **once** in `.github`, use them **everywhere**. This eliminates duplication and ensures consistency across all 16+ repositories.
 
 ---
 
-## 🏗️ Platform Architecture
+## 🚀 Reusable Workflow Framework
 
-### 📊 Platform Statistics
+### Current Reusable Workflows
 
-- **Repositories** - Specialized components for each system aspect
-- **Microservices** - Spring Boot backend services (Java 17)
-- **Modern Frontend** - React 18 with TypeScript
-- **Real-time Messaging** - Matrix Protocol (E2EE support)
-- **Container Orchestration** - Kubernetes (k3s)
-- **Database Stack** - MariaDB, MongoDB, PostgreSQL, Redis
+| Workflow | Purpose | Used By |
+|----------|---------|---------|
+| `pr-validation.yml` | PR validation, labeling, security scanning | All repositories |
+| `create-labels.yml` | Create standardized labels | All repositories |
+| `deploy-workflows.yml` | Deploy workflows to all repos | This repository only |
 
-### 🛠️ Technology Stack
+### How Reusable Workflows Work
 
-| Layer | Technologies |
-|-------|--------------|
-| **Frontend** | React 18, TypeScript, Vite, Matrix JS SDK |
-| **Backend** | Spring Boot 2.7.x, Java 17, REST APIs |
-| **Databases** | MariaDB 10.6, MongoDB 5.0, PostgreSQL 14, Redis 7.0 |
-| **Messaging** | RabbitMQ 3.12, Matrix Synapse |
-| **Authentication** | Keycloak 22.x, OIDC, JWT |
-| **Orchestration** | Kubernetes (k3s), Docker |
-| **Observability** | SignOZ, OpenTelemetry, Prometheus |
-| **Reverse Proxy** | Nginx 1.25 |
+**1. Define workflow in `.github`** (this repository):
 
----
+```yaml
+# .github/.github/workflows/my-workflow.yml
+name: My Reusable Workflow
 
-## 📦 Repository Structure
+on:
+  workflow_call:  # Makes it reusable
 
-<div align="center">
+jobs:
+  my-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do something
+        run: echo "Works everywhere!"
+```
 
-### **Frontend Applications**
-[`ORISO-Frontend`](https://github.com/OpenResilienceInitiative/ORISO-Frontend) • [`ORISO-Admin`](https://github.com/OpenResilienceInitiative/ORISO-Admin)
+**2. Call it from any repository**:
 
-### **Backend Microservices**
-[`ORISO-UserService`](https://github.com/OpenResilienceInitiative/ORISO-UserService) • [`ORISO-TenantService`](https://github.com/OpenResilienceInitiative/ORISO-TenantService) • [`ORISO-AgencyService`](https://github.com/OpenResilienceInitiative/ORISO-AgencyService) • [`ORISO-ConsultingTypeService`](https://github.com/OpenResilienceInitiative/ORISO-ConsultingTypeService)
+```yaml
+# Any repository: .github/workflows/use-my-workflow.yml
+name: Use My Workflow
 
-### **Infrastructure & Communication**
-[`ORISO-Database`](https://github.com/OpenResilienceInitiative/ORISO-Database) • [`ORISO-Nginx`](https://github.com/OpenResilienceInitiative/ORISO-Nginx) • [`ORISO-Keycloak`](https://github.com/OpenResilienceInitiative/ORISO-Keycloak) • [`ORISO-Redis`](https://github.com/OpenResilienceInitiative/ORISO-Redis) • [`ORISO-Matrix`](https://github.com/OpenResilienceInitiative/ORISO-Matrix) • [`ORISO-Element`](https://github.com/OpenResilienceInitiative/ORISO-Element)
+on:
+  push:
+    branches: [main]
 
-### **Monitoring & Deployment**
-[`ORISO-HealthDashboard`](https://github.com/OpenResilienceInitiative/ORISO-HealthDashboard) • [`ORISO-SignOZ`](https://github.com/OpenResilienceInitiative/ORISO-SignOZ) • [`ORISO-Kubernetes`](https://github.com/OpenResilienceInitiative/ORISO-Kubernetes) • [`ORISO-Docs`](https://github.com/OpenResilienceInitiative/ORISO-Docs)
+jobs:
+  call-workflow:
+    uses: OpenResilienceInitiative/.github/.github/workflows/my-workflow.yml@main
+```
 
-</div>
-
-<details>
-<summary><b>📚 View Complete Repository Guide</b></summary>
-
-See our [Complete Repository Guide](https://github.com/OpenResilienceInitiative/.github/blob/main/README.md#repositories) for detailed information about each repository, including:
-- Repository purposes and features
-- Technology stacks
-- API endpoints
-- Deployment configurations
-- Documentation links
-
-</details>
+**Result:** The workflow runs in that repository automatically!
 
 ---
 
-## 🚀 Quick Start
+## 📝 Creating New Reusable Workflows
 
-### 📖 Documentation
+### For New Contributors
 
-- **📘 Platform Documentation:** [openresilienceinitiative.mintlify.app](https://openresilienceinitiative.mintlify.app)
-- **📝 Contributing Guide:** See [Contribution Guidelines](#-contributing) below
-- **🏷️ Label System:** [Label Setup Guide](./LABEL_SETUP_GUIDE.md)
-- **📋 PR Templates:** [PR Template Guide](./PR_TEMPLATE_SETUP_GUIDE.md)
+Follow this pattern to create ANY new reusable workflow:
 
-### 🔧 Getting Started
+#### Step 1: Create the Reusable Workflow
 
-1. **Explore the Platform** - Check out our [live documentation](https://openresilienceinitiative.mintlify.app)
-2. **Clone Repositories** - Start with [`ORISO-Kubernetes`](https://github.com/OpenResilienceInitiative/ORISO-Kubernetes) for deployment
-3. **Read the Docs** - Each repository contains detailed README files
-4. **Contribute** - See our [contribution guidelines](#-contributing) below
+**Location:** `.github/.github/workflows/your-workflow.yml`
+
+```yaml
+name: Your Workflow Name (Reusable)
+
+on:
+  workflow_call:  # Required: Makes it reusable
+    inputs:
+      optional-input:
+        description: 'Optional input parameter'
+        required: false
+        type: string
+
+permissions:
+  contents: read  # Set minimum required permissions
+
+jobs:
+  your-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Your step
+        run: |
+          echo "This workflow can be used by any repository"
+          echo "Input: ${{ inputs.optional-input }}"
+```
+
+#### Step 2: Create a Caller Template
+
+**Location:** `.github/.github/workflows/your-workflow-caller.yml`
+
+This is the template that gets deployed to repositories:
+
+```yaml
+name: Your Workflow Name
+
+on:
+  push:  # Trigger when you need it
+    branches: [main]
+  workflow_dispatch:  # Optional: Manual trigger
+
+jobs:
+  run-workflow:
+    uses: OpenResilienceInitiative/.github/.github/workflows/your-workflow.yml@main
+    with:
+      optional-input: "value"
+```
+
+#### Step 3: Deploy to All Repositories
+
+Update `deploy-workflows.sh` to include your new workflow:
+
+```bash
+# Add your workflow to the deploy script
+REPOS=(...all repos...)
+for repo in "${REPOS[@]}"; do
+  # Copy your caller template
+  cp your-workflow-caller.yml .github/workflows/your-workflow.yml
+done
+```
+
+**That's it!** Your workflow is now available across all repositories.
 
 ---
 
-## 🤝 Contributing
+## 🎯 Use Cases for Reusable Workflows
 
-We welcome contributions! Here's how to get started:
+You can create reusable workflows for:
 
-### For Contributors
+- ✅ **PR Validation** (already implemented)
+- ✅ **CI/CD Pipelines** - Build, test, deploy
+- ✅ **Security Scanning** - SAST, dependency checks
+- ✅ **Code Quality** - Linting, formatting checks
+- ✅ **Documentation** - Auto-generate docs, check links
+- ✅ **Label Management** - Create/update labels (already implemented)
+- ✅ **Dependency Updates** - Automated dependency management
+- ✅ **Release Management** - Automated versioning and releases
+- ✅ **Any automation** you need across multiple repos!
 
-1. **Fork & Clone** - Fork the repository you want to contribute to
-2. **Create Branch** - Use naming like `feature/`, `fix/`, `task/`
-3. **Follow Standards** - Use PR templates and follow our guidelines
-4. **Submit PR** - Create a pull request with proper description
+**Pattern:** If you need the same automation in multiple repositories, make it a reusable workflow in `.github`!
 
-### Contribution Standards
+---
 
-- ✅ **Semantic PR Titles** - Use format: `feat:`, `fix:`, `docs:`, etc.
-- ✅ **PR Templates** - Select appropriate template when creating PR
-- ✅ **Code Quality** - Follow code review guidelines
-- ✅ **Documentation** - Update docs for significant changes
+## ✨ Automated Features (Current)
 
-**📖 Detailed Guides:**
-- [Testing Guide](./TESTING_GUIDE.md) - **NEW**: How to test workflows, GitHub setup, and CodeRabbit
-- [PR Template Setup Guide](./PR_TEMPLATE_SETUP_GUIDE.md) - How to create proper PRs
-- [Label Setup Guide](./LABEL_SETUP_GUIDE.md) - Understanding our label system
-- [Code Review Guide](./CODE_REVIEW_GUIDE.md) - Review standards and practices
-- [Workflow Deployment Guide](./WORKFLOW_DEPLOYMENT_GUIDE.md) - How workflows are deployed across repositories
-- [Setup Workflow Deployment](./SETUP_WORKFLOW_DEPLOYMENT.md) - **Required**: Set up PAT for accessing private repos
+### PR Validation Workflow
 
-### Automated Checks
+All pull requests automatically get:
 
-All PRs are automatically validated for:
-- ✅ Semantic commit format
-- ✅ PR body completeness
+- ✅ Semantic PR title validation (`feat:`, `fix:`, `docs:`, etc.)
+- ✅ PR body completeness checks
 - ✅ Auto-labeling (work type, area, priority, size)
 - ✅ Security scanning (Trivy)
 - ✅ Code quality checks
 
----
+### How to Use in Your Repository
 
-## 🏷️ Repository Labels
+Just add this file to any repository:
 
-We use a comprehensive labeling system for better organization:
+```yaml
+# .github/workflows/pr-validation.yml (in any repo)
+name: PR Validation & Quality Checks
 
-| Category | Labels |
-|----------|--------|
-| **Work Type** | `story`, `task`, `bug`, `hotfix` |
-| **Priority** | `P0-Critical`, `P1-High`, `P2-Medium`, `P3-Low` |
-| **Area** | `frontend`, `backend`, `api`, `database`, `infra`, `docs` |
-| **Size** | `S`, `M`, `L`, `XL` |
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
 
-See [LABEL_SETUP_GUIDE.md](./LABEL_SETUP_GUIDE.md) for complete details.
+jobs:
+  validate-and-label:
+    uses: OpenResilienceInitiative/.github/.github/workflows/pr-validation.yml@main
+```
 
----
-
-## 📖 About This Repository
-
-This `.github` repository contains **organization-wide standards** that apply to all repositories:
-
-- 📋 **PR Templates** - Standardized templates for different change types
-- ⚙️ **Workflow Automation** - GitHub Actions for validation and quality checks (using reusable workflows)
-- 🏷️ **Label Configuration** - Consistent labeling across all repos
-- 📚 **Documentation** - Contribution guidelines and best practices
-
-> **💡 Note:** Workflows use GitHub's **reusable workflows** feature. The main workflow logic is defined here in `.github`, and individual repositories call it. This means updates to workflows automatically apply to all repositories. See [Workflow Deployment Guide](./WORKFLOW_DEPLOYMENT_GUIDE.md) for details.
+That's it! All PR validation features work automatically.
 
 ---
 
-## 🌐 Links & Resources
+## 📋 Contributing Guidelines
 
-- **🌐 Website:** [openresilience.cc](https://openresilience.cc)
-- **📚 Documentation:** [Platform Docs](https://openresilienceinitiative.mintlify.app)
-- **👥 Organization:** [OpenResilienceInitiative](https://github.com/OpenResilienceInitiative)
+### Creating Your First Reusable Workflow
+
+**1. Plan your workflow:**
+   - What problem does it solve?
+   - Will it be used by multiple repositories?
+   - What triggers should it respond to?
+
+**2. Create the reusable workflow:**
+   - File: `.github/.github/workflows/my-workflow.yml`
+   - Use `workflow_call:` trigger
+   - Set minimum required permissions
+   - Keep it simple and focused
+
+**3. Create the caller template:**
+   - File: `.github/.github/workflows/my-workflow-caller.yml`
+   - Simple wrapper that calls your reusable workflow
+   - Deploy this to repositories
+
+**4. Document it:**
+   - Add to this README
+   - Explain what it does
+   - Show example usage
+
+**5. Deploy it:**
+   - Update `deploy-workflows.sh` if needed
+   - Or deploy manually to specific repos
 
 ---
 
-## 📄 License
+## 🏷️ Labels
 
-This organization uses **GNU Affero General Public License v3.0** (AGPL-3.0) for core repositories. This copyleft license ensures that modifications and services built using ORISO Platform remain open source, maintaining freedom and accessibility of mental health support technology.
+Labels are automatically applied via reusable workflows:
 
-> **Note:** License information is specified in individual repository LICENSE files.
+| Category | Labels | Auto-detection |
+|---------|--------|----------------|
+| **Work Type** | `story`, `task`, `bug`, `hotfix` | Branch name |
+| **Priority** | `P0-Critical`, `P1-High`, `P2-Medium`, `P3-Low` | PR content |
+| **Area** | `frontend`, `backend`, `api`, `database`, `infra`, `docs` | Files changed |
+| **Size** | `S`, `M`, `L`, `XL` | File count |
 
 ---
 
-## 📞 Contact & Support
+## 📚 Documentation
 
-- **Questions?** Open an issue in the relevant repository
-- **Documentation Issues?** See [ORISO-Docs](https://github.com/OpenResilienceInitiative/ORISO-Docs)
-- **General Inquiries:** Visit our [website](https://openresilience.cc)
+- **[PR Template Guide](./PR_TEMPLATE_SETUP_GUIDE.md)** - How to create proper PRs
+- **[Label Setup Guide](./LABEL_SETUP_GUIDE.md)** - Understanding our label system
+- **[Workflow Deployment Guide](./WORKFLOW_DEPLOYMENT_GUIDE.md)** - How to deploy workflows
+- **[Code Review Guide](./CODE_REVIEW_GUIDE.md)** - Review standards
+
+---
+
+## 🔄 Workflow Architecture
+
+```
+┌─────────────────────────────────────┐
+│  .github Repository                  │
+│  (This repository - Source of Truth) │
+│                                      │
+│  ┌──────────────────────────────┐   │
+│  │ Reusable Workflows            │   │
+│  │ - pr-validation.yml          │   │
+│  │ - create-labels.yml          │   │
+│  │ - YOUR-NEW-WORKFLOW.yml      │   │
+│  └──────────────────────────────┘   │
+│                                      │
+│  ┌──────────────────────────────┐   │
+│  │ Caller Templates              │   │
+│  │ (deployed to repos)           │   │
+│  └──────────────────────────────┘   │
+└─────────────────────────────────────┘
+           ↓ (automatic)
+┌─────────────────────────────────────┐
+│  All Organization Repositories       │
+│  - ORISO-Frontend                   │
+│  - ORISO-Backend                    │
+│  - ORISO-Docs                       │
+│  - ... (16+ repositories)          │
+│                                      │
+│  Each repo has caller workflows      │
+│  that use reusable workflows         │
+└─────────────────────────────────────┘
+```
+
+**Key Benefits:**
+- ✅ Update once → All repos get updates automatically
+- ✅ No duplication → Single source of truth
+- ✅ Consistency → Same workflow behavior everywhere
+- ✅ Easy to add → New repos automatically get workflows
+
+---
+
+## 🌐 Organization
+
+**Open Resilience Initiative** - Building accessible mental health support through open-source technology.
+
+- **Website**: [openresilience.cc](https://openresilience.cc)
+- **Documentation**: [Platform Docs](https://openresilienceinitiative.mintlify.app)
+- **GitHub**: [@OpenResilienceInitiative](https://github.com/OpenResilienceInitiative)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by the Open Resilience Initiative team**
+**Centralized automation framework for all repositories**
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-green)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)]()
 
 </div>
-
