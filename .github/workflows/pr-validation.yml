@@ -155,32 +155,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 4️⃣ Smart Labeling (Work Type, Area, Priority, State)
-      - name: Smart labeling based on PR content
+      # 4️⃣ File-based Area Label (only ONE area label)
+      - name: Add area label based on files
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const pr = context.payload.pull_request;
-            const title = (pr.title || '').toLowerCase();
-            const body = (pr.body || '').toLowerCase();
-            const branch = (pr.head.ref || '').toLowerCase();
-            const labelsToAdd = [];
-            
-            // Work Type Detection (Story, Task, Bug)
-            // Note: This is supplemental - branch-based labeling takes priority
-            if (!title.match(/^(feat|feature|story)/) && 
-                !title.match(/^(fix|bug|bugfix)/) && 
-                !branch.match(/^(feature|feat|story)/) &&
-                !branch.match(/^(fix|bug|bugfix)/)) {
-              // Default to 'task' if PR title suggests technical work
-              if (title.match(/^(chore|refactor|perf|test|ci|docs|infra|devops)/) || 
-                  branch.match(/^(task|chore|refactor|devops|infra|docs)/)) {
-                labelsToAdd.push('task');
-              }
-            }
-            
-            // Area Detection based on changed files
             const files = await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -188,28 +168,29 @@ jobs:
             });
             
             const filePaths = files.data.map(f => f.filename);
-            const frontendPatterns = ['.tsx', '.ts', '.jsx', '.js', '.css', '.scss', '.vue'];
-            const backendPatterns = ['.java', '.py', '.go', '.rs', 'pom.xml', 'requirements.txt'];
-            const databasePatterns = ['.sql', '/migrations/', '/schema/'];
-            const apiPatterns = ['/api/', '/routes/', '/controllers/'];
-            const infraPatterns = ['.github/', 'Dockerfile', '.yml', '.yaml', '/kubernetes/', '/terraform/'];
-            const docsPatterns = ['.md', '/docs/', '/documentation/'];
             
-            const hasFrontend = filePaths.some(f => frontendPatterns.some(p => f.includes(p)));
-            const hasBackend = filePaths.some(f => backendPatterns.some(p => f.includes(p)));
-            const hasDatabase = filePaths.some(f => databasePatterns.some(p => f.includes(p)));
-            const hasAPI = filePaths.some(f => apiPatterns.some(p => f.includes(p)));
-            const hasInfra = filePaths.some(f => infraPatterns.some(p => f.includes(p)));
-            const hasDocs = filePaths.some(f => docsPatterns.some(p => f.includes(p)));
+            // Priority order: detect ONE area label
+            let areaLabel = '';
+            if (filePaths.some(f => ['.tsx', '.ts', '.jsx', '.js', '.css', '.scss', '.vue'].some(p => f.includes(p)))) areaLabel = 'frontend';
+            else if (filePaths.some(f => ['/api/', '/routes/', '/controllers/'].some(p => f.includes(p)))) areaLabel = 'api';
+            else if (filePaths.some(f => ['.java', '.py', '.go', '.rs', 'pom.xml', 'requirements.txt'].some(p => f.includes(p)))) areaLabel = 'backend';
+            else if (filePaths.some(f => ['.sql', '/migrations/', '/schema/'].some(p => f.includes(p)))) areaLabel = 'database';
+            else if (filePaths.some(f => ['.github/', 'Dockerfile', '/kubernetes/', '/terraform/'].some(p => f.includes(p)))) areaLabel = 'infra';
+            else if (filePaths.some(f => ['.md', '/docs/', '/documentation/'].some(p => f.includes(p)))) areaLabel = 'docs';
             
-            if (hasFrontend && !hasBackend) labelsToAdd.push('frontend');
-            if (hasBackend && !hasFrontend) labelsToAdd.push('backend');
-            if (hasAPI) labelsToAdd.push('api');
-            if (hasDatabase) labelsToAdd.push('database');
-            if (hasInfra) labelsToAdd.push('infra');
-            if (hasDocs && filePaths.length <= 5) labelsToAdd.push('docs');
+            // Only add if detected (don't duplicate with branch-based)
+            if (areaLabel) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [areaLabel]
+              });
+            }
             
-            // Priority Detection based on keywords
+            // Priority: only if explicitly mentioned (not default)
+            const title = (context.payload.pull_request.title || '').toLowerCase();
+            const body = (context.payload.pull_request.body || '').toLowerCase();
             const priorityKeywords = {
               'P0-Critical': ['critical', 'urgent', 'p0', 'hotfix', 'production down', 'security', 'data loss'],
               'P1-High': ['high priority', 'p1', 'important', 'blocker', 'major'],
@@ -219,29 +200,32 @@ jobs:
             
             for (const [priority, keywords] of Object.entries(priorityKeywords)) {
               if (keywords.some(k => title.includes(k) || body.includes(k))) {
-                labelsToAdd.push(priority);
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  labels: [priority]
+                });
                 break;
               }
             }
             
-            // State Detection
-            if (title.includes('wip') || title.includes('draft') || title.includes('[wip]') || title.includes('[draft]')) {
-              labelsToAdd.push('needs-refinement');
-            }
-            
-            // Breaking Change Detection
-            const breakingKeywords = ['breaking', 'breaking change', '!:', 'major', '⚠️'];
-            if (breakingKeywords.some(k => title.includes(k) || body.includes(k))) {
-              labelsToAdd.push('breaking-change');
-            }
-            
-            // Add all detected labels
-            if (labelsToAdd.length > 0) {
+            // Special labels: breaking change, state
+            if (['breaking', 'breaking change', '!:', '⚠️'].some(k => title.includes(k) || body.includes(k))) {
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                labels: labelsToAdd
+                labels: ['breaking-change']
+              });
+            }
+            
+            if (['wip', 'draft', '[wip]', '[draft]'].some(k => title.includes(k))) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['needs-refinement']
               });
             }
 
