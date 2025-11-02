@@ -127,10 +127,10 @@ jobs:
               errors.push(`❌ PR description is too short (${bodyWithoutPlaceholders.length} chars). Please provide a detailed summary (minimum ${minBodyLength} chars).`);
             }
             
-            // Check if "Summary" section is filled
-            const summaryMatch = body.match(/##\s+(Summary|📝 Summary|🧾 Summary)[\s\S]*?$/m);
-            if (!summaryMatch || summaryMatch[0].length < 50) {
-              errors.push('❌ Summary section appears incomplete. Please provide detailed information about what changed and why.');
+            // Check if "Summary" section exists and has content
+            const summaryMatch = body.match(/Summary\s*\n+([\s\S]*?)(?=\n+##|\n+✅|$)/i);
+            if (!summaryMatch || !summaryMatch[1] || summaryMatch[1].trim().length < 50) {
+              errors.push('❌ Summary section appears incomplete. Please provide at least 50 characters of detailed information about what changed and why.');
             }
             
             if (errors.length > 0) {
@@ -255,6 +255,7 @@ jobs:
 
       # 6️⃣ Security Scan
       - name: Run Trivy vulnerability scanner
+        id: trivy-scan
         uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
@@ -263,10 +264,20 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+          exit-code: '0'  # Don't fail on vulnerabilities (we upload results anyway)
+
+      - name: Check if SARIF file exists
+        id: check-sarif
+        run: |
+          if [ -f "trivy-results.sarif" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && steps.check-sarif.outputs.exists == 'true'
         with:
           sarif_file: 'trivy-results.sarif'
 
