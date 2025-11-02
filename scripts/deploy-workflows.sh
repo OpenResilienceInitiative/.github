@@ -49,7 +49,8 @@ GITHUB_DIR="$(dirname "$SCRIPT_DIR")"
 # In GitHub Actions, GITHUB_WORKSPACE is set to the repository root
 # For local runs, use GITHUB_DIR (parent of scripts)
 GITHUB_REPO_ROOT="${GITHUB_WORKSPACE:-$GITHUB_DIR}"
-WORKFLOW_TEMPLATE="$GITHUB_REPO_ROOT/.github/workflows/pr-validation-caller.yml"
+# Workflow template is in .github/.github/workflows/ (nested .github directory in .github repo)
+WORKFLOW_TEMPLATE="$GITHUB_REPO_ROOT/.github/.github/workflows/pr-validation-caller.yml"
 
 # Temporary directory for cloning
 TEMP_DIR=$(mktemp -d)
@@ -159,7 +160,21 @@ for repo in "${REPOS[@]}"; do
   
   # Copy workflow file (only file needed - configs are centralized)
   echo -e "${YELLOW}📋 Deploying PR validation workflow...${NC}"
+  
+  # Verify source template exists
+  if [ ! -f "$WORKFLOW_TEMPLATE" ]; then
+    echo -e "${RED}❌ Error: Workflow template not found: $WORKFLOW_TEMPLATE${NC}"
+    FAILED_REPOS+=("$repo")
+    cd - > /dev/null
+    continue
+  fi
+  
+  # Create .github/workflows directory if it doesn't exist
+  mkdir -p .github/workflows
+  
+  # Copy the workflow file
   cp "$WORKFLOW_TEMPLATE" .github/workflows/pr-validation.yml
+  echo -e "${GREEN}✅ Copied workflow template to .github/workflows/pr-validation.yml${NC}"
   
   # Remove local config files if they exist (configs are centralized and auto-fetched by workflow)
   if [ -f .github/pr-labeler.yml ]; then
@@ -176,9 +191,12 @@ for repo in "${REPOS[@]}"; do
   # The workflow automatically fetches them during execution - no local copies needed
   # PR templates are also centralized and automatically available
   
-  # Verify workflow exists (centralized management requirement)
+  # Verify workflow file was created
   if [ ! -f .github/workflows/pr-validation.yml ]; then
-    echo -e "${YELLOW}⚠️  ${repo}: Missing workflow file - will create${NC}"
+    echo -e "${RED}❌ ${repo}: Failed to create workflow file${NC}"
+    FAILED_REPOS+=("$repo")
+    cd - > /dev/null
+    continue
   fi
   
   # Check if there are changes needed
@@ -187,6 +205,7 @@ for repo in "${REPOS[@]}"; do
     if [ -f .github/workflows/pr-validation.yml ]; then
       echo -e "${GREEN}✅ ${repo}: Workflow exists and is up to date (centrally managed)${NC}"
       SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+      cd - > /dev/null
       continue
     else
       echo -e "${YELLOW}⚠️  ${repo}: Workflow missing - will create${NC}"
