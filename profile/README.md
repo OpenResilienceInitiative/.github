@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌱 Open Resilience Initiative
+# 𐂷 Open Resilience Initiative
 
 **Building Online Counseling & Consultation Systems for Resilience and Support**
 
@@ -11,11 +11,11 @@
 
 ---
 
-## 🌟 About ORISO Platform
+## About ORISO Platform
 
 **ORISO (Online Resilience Initiative Support Operations)** is a comprehensive microservices-based online counseling system designed for scalability, security, and real-time communication. The platform enables accessible mental health support through a modern, decentralized architecture.
 
-### 🎯 Mission
+### 🏁 Mission
 
 To provide accessible, secure, and scalable online counseling services through open-source technology that empowers communities to deliver mental health support.
 
@@ -46,7 +46,7 @@ To provide accessible, secure, and scalable online counseling services through o
 
 ---
 
-## 🚀 Quick Links
+## 🔗 Quick Links
 
 - **📘 Platform Documentation**: [openresilienceinitiative.mintlify.app](https://openresilienceinitiative.mintlify.app)
 - **🌐 Website**: [openresilience.cc](https://openresilience.cc)
