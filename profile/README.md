@@ -22,8 +22,7 @@ To provide accessible, secure, and scalable online counseling services through o
 ---
 
 ## 🏗️ Platform Architecture
-
-<img width="6228" height="2471" alt="Mermaid Chart - Create complex, visual diagrams with text -2025-11-03-105411" src="https://github.com/user-attachments/assets/364c4d03-6a54-4d86-ba25-073921f35a5c" />
+<img width="2793" height="1375" alt="diagram-export-5-11-2025-12_46_55-AM" src="https://github.com/user-attachments/assets/3e07812b-5295-4968-a4b4-684b6f61ff2c" />
 
 ### 📊 Repository Structure
 
