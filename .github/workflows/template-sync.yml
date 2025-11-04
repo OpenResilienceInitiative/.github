@@ -92,13 +92,26 @@ jobs:
             }
             
             // Create PR
+            const prBody = [
+              '## 🔄 Template Sync',
+              '',
+              'This PR syncs PR and Issue templates from `OpenResilienceInitiative/.github`.',
+              '',
+              '**Synced:**',
+              '- `.github/PULL_REQUEST_TEMPLATE/`',
+              '- `.github/ISSUE_TEMPLATE/`',
+              '- `PULL_REQUEST_TEMPLATE.md`',
+              '',
+              '*Automated by template sync workflow.*'
+            ].join('\n');
+            
             const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: 'chore: Sync PR and Issue templates from template repository',
               head: syncBranch,
               base: defaultBranch,
-              body: '## 🔄 Template Sync\n\nThis PR syncs PR and Issue templates from `OpenResilienceInitiative/.github`.\n\n**Synced:**\n- `.github/PULL_REQUEST_TEMPLATE/`\n- `.github/ISSUE_TEMPLATE/`\n- `PULL_REQUEST_TEMPLATE.md`\n\n*Automated by template sync workflow.*',
+              body: prBody,
               maintainer_can_modify: true
             });
             
