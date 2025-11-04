@@ -50,8 +50,26 @@ jobs:
           git remote add upstream "https://github.com/OpenResilienceInitiative/.github.git"
           git fetch upstream main --quiet
           
-          # Sync only PR and Issue templates
-          git checkout "upstream/main" -- .github/PULL_REQUEST_TEMPLATE .github/ISSUE_TEMPLATE PULL_REQUEST_TEMPLATE.md 2>/dev/null || true
+          # Sync only PR and Issue templates from .github repo root
+          # Create .github directory if it doesn't exist
+          mkdir -p .github
+          
+          # Sync Issue templates (from root of .github repo)
+          git checkout "upstream/main" -- ISSUE_TEMPLATE 2>/dev/null || true
+          if [ -d "ISSUE_TEMPLATE" ]; then
+            rm -rf .github/ISSUE_TEMPLATE 2>/dev/null || true
+            mv ISSUE_TEMPLATE .github/ISSUE_TEMPLATE 2>/dev/null || true
+          fi
+          
+          # Sync PR templates (from root of .github repo)
+          git checkout "upstream/main" -- PULL_REQUEST_TEMPLATE PULL_REQUEST_TEMPLATE.md 2>/dev/null || true
+          if [ -d "PULL_REQUEST_TEMPLATE" ]; then
+            rm -rf .github/PULL_REQUEST_TEMPLATE 2>/dev/null || true
+            mv PULL_REQUEST_TEMPLATE .github/PULL_REQUEST_TEMPLATE 2>/dev/null || true
+          fi
+          if [ -f "PULL_REQUEST_TEMPLATE.md" ]; then
+            cp PULL_REQUEST_TEMPLATE.md .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || true
+          fi
           
           # Commit if changes exist
           if ! git diff --quiet && ! git diff --cached --quiet; then

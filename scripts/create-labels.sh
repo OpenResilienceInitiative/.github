@@ -78,6 +78,13 @@ declare -a LABELS=(
     "blocked|D73A4A|Blocked by dependency"
     "ready-to-merge|0E8A16|Ready for merge"
     "breaking-change|B60205|Contains breaking changes"
+    
+    # Issue Template Labels
+    "triage|FBCB04|Needs initial review"
+    "enhancement|A2EEEF|New feature or request"
+    "question|D876E3|Further information is requested"
+    "support|D876E3|Support request"
+    "documentation|0075CA|Improvements or additions to documentation"
 )
 
 # Colors for output
