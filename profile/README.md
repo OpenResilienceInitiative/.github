@@ -11,9 +11,9 @@
 
 ---
 
-## About ORISO Platform
+## What role plays ORISO inside our open source resilience initiative?
 
-**ORISO (Online Resilience Initiative Support Operations)** is a comprehensive microservices-based online counseling system designed for scalability, security, and real-time communication. The platform enables accessible mental health support through a modern, decentralized architecture.
+**ORISO (Online Resilience Initiative Single Organisation)** is the dedicated instance of the Open Resilience Initiative designed for single large organisations. It provides a secure, multi-tenant counseling infrastructure where one organisation can manage multiple internal counseling units within a unified, scalable architecture.
 
 ### 🏁 Mission
 
