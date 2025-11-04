@@ -1,0 +1,99 @@
+name: ❓ Question / Support
+description: Ask a question or get help with the ORISO platform
+title: "[Question]: "
+labels: ["question", "support"]
+type: question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question or need help? We're here to assist! Please provide as much context as possible.
+
+  - type: dropdown
+    id: question-type
+    attributes:
+      label: Question Type
+      description: What type of question is this?
+      options:
+        - How to use / Setup help
+        - Architecture / Design question
+        - Integration / API question
+        - Development / Contribution question
+        - Deployment / Infrastructure question
+        - Security / Compliance question
+        - General question
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: related-service
+    attributes:
+      label: Related Service/Component
+      description: Which service or component is your question about? (if applicable)
+      options:
+        - Frontend (ORISO-Frontend)
+        - Admin Panel (ORISO-Admin)
+        - User Service
+        - Tenant Service
+        - Agency Service
+        - Consulting Type Service
+        - Keycloak (Auth)
+        - Matrix/Element (Messaging)
+        - Nginx (Gateway)
+        - Infrastructure/Kubernetes
+        - Documentation
+        - General / Cross-platform
+        - Not applicable
+    validations:
+      required: false
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: |
+        Please provide a clear and detailed question...
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish? What have you tried so far?
+      placeholder: |
+        - What are you working on?
+        - What have you tried?
+        - What resources have you checked? (docs, issues, etc.)
+        - Any error messages or logs?
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if applicable)
+      description: If your question is about setup or development, please provide environment details
+      placeholder: |
+        - OS: [e.g., macOS 14.0, Ubuntu 22.04]
+        - Environment: [Local/Dev/Staging/Production]
+        - Versions: [Java, Node, Docker, etc. if relevant]
+      render: markdown
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues and documentation
+          required: true
+        - label: I have checked the [ORISO documentation](https://openresilienceinitiative.mintlify.app)
+          required: false
+

@@ -1,0 +1,141 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for the ORISO platform
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+type: feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please provide as much detail as possible about what you'd like to see.
+
+  - type: dropdown
+    id: target-service
+    attributes:
+      label: Target Service/Component
+      description: Which service or component would this feature affect?
+      options:
+        - Frontend (ORISO-Frontend)
+        - Admin Panel (ORISO-Admin)
+        - User Service
+        - Tenant Service
+        - Agency Service
+        - Consulting Type Service
+        - Keycloak (Auth)
+        - Matrix/Element (Messaging)
+        - Nginx (Gateway)
+        - Infrastructure/Kubernetes
+        - Documentation
+        - Cross-platform (Multiple services)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature?
+      options:
+        - P0-Critical (Blocking current work, security requirement)
+        - P1-High (Important for next release)
+        - P2-Medium (Nice to have, can wait)
+        - P3-Low (Future consideration)
+      default: 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? Who would benefit from it?
+      placeholder: |
+        Describe the problem or use case this feature would address...
+        
+        Example: "As a [user type], I need [something] so that [benefit]."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your ideal solution or feature
+      placeholder: |
+        Describe how you envision this feature working...
+        
+        Include:
+        - User flow
+        - Key functionality
+        - UI/UX considerations (if applicable)
+        - Technical approach (if known)
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What alternative solutions or features have you considered?
+      placeholder: Describe any alternative approaches you've thought about...
+    validations:
+      required: false
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact & Benefits
+      description: Who would benefit from this feature and how?
+      placeholder: |
+        - Target users: [e.g., consultants, admins, end users]
+        - Expected benefits: [e.g., improved UX, better performance, security enhancement]
+        - Estimated users affected: [if known]
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Considerations
+      description: Any technical considerations, dependencies, or constraints?
+      placeholder: |
+        - Affected services: [list services]
+        - Database changes needed: [yes/no and details if known]
+        - API changes needed: [yes/no and details if known]
+        - Security considerations: [any security implications]
+        - Performance considerations: [any performance implications]
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Related Documentation/Links
+      description: Links to design docs, specifications, related issues, or external references
+      placeholder: |
+        - Design Doc: [link]
+        - Technical Spec: [link]
+        - Related Issues: #[issue-number]
+        - External References: [links]
+      render: markdown
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this feature hasn't been requested before
+          required: true
+        - label: I have provided a clear problem statement and proposed solution
+          required: true
+        - label: This feature aligns with ORISO's mission of accessible mental health support
+          required: true
+

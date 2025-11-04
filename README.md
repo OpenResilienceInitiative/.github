@@ -17,6 +17,7 @@
 ### What This Repository Provides
 
 - 📋 **PR Templates** - Standardized templates for consistent pull requests
+- 🐛 **Issue Templates** - Structured issue forms for bug reports, features, docs, and questions
 - ⚙️ **Reusable Workflows** - Centralized GitHub Actions for ANY automation need
 - 🏷️ **Label Configuration** - Consistent labeling rules across all repositories
 - 📚 **Documentation & Templates** - Guidelines for creating new workflows
@@ -247,6 +248,7 @@ Labels are automatically applied via reusable workflows:
 ## 📚 Documentation
 
 - **[PR Template Guide](./PR_TEMPLATE_SETUP_GUIDE.md)** - How to create proper PRs
+- **[Issue Template Guide](./ISSUE_TEMPLATE_SETUP_GUIDE.md)** - How to use and customize issue templates
 - **[Label Setup Guide](./LABEL_SETUP_GUIDE.md)** - Understanding our label system
 - **[Workflow Deployment Guide](./WORKFLOW_DEPLOYMENT_GUIDE.md)** - How to deploy workflows
 - **[Code Review Guide](./CODE_REVIEW_GUIDE.md)** - Review standards
