@@ -11,4 +11,3 @@ on:
 jobs:
   sync-templates:
     uses: OpenResilienceInitiative/.github/.github/workflows/template-sync.yml@main
-
