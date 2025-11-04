@@ -36,6 +36,7 @@
 | `pr-validation.yml` | PR validation, labeling, security scanning | All repositories |
 | `create-labels.yml` | Create standardized labels | All repositories |
 | `deploy-workflows.yml` | Deploy workflows to all repos | This repository only |
+| `template-sync.yml` | Sync changes from template repository | Any repository created from template |
 
 ### How Reusable Workflows Work
 
@@ -160,6 +161,7 @@ You can create reusable workflows for:
 - ✅ **Code Quality** - Linting, formatting checks
 - ✅ **Documentation** - Auto-generate docs, check links
 - ✅ **Label Management** - Create/update labels (already implemented)
+- ✅ **Template Syncing** - Pull updates from template repos (already implemented)
 - ✅ **Dependency Updates** - Automated dependency management
 - ✅ **Release Management** - Automated versioning and releases
 - ✅ **Any automation** you need across multiple repos!
@@ -198,6 +200,45 @@ jobs:
 ```
 
 That's it! All PR validation features work automatically.
+
+### Template Sync Workflow
+
+**Pull changes from the `.github` template repository** into repositories created from it:
+
+```yaml
+# .github/workflows/template-sync.yml (in any repo)
+name: Sync from Template Repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_pr:
+        description: 'Create a PR instead of pushing directly'
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    # Run weekly on Monday at 2 AM UTC
+    - cron: '0 2 * * 1'
+
+jobs:
+  sync-template:
+    uses: OpenResilienceInitiative/.github/.github/workflows/template-sync.yml@main
+    with:
+      template_repo: 'OpenResilienceInitiative/.github'
+      template_branch: 'main'
+      target_branch: 'main'
+      create_pr: ${{ inputs.create_pr != false }}
+```
+
+**Features:**
+- ✅ Handles unrelated git histories (template repositories)
+- ✅ Automatic merge conflict resolution (template wins)
+- ✅ Optional PR creation for review
+- ✅ Sync specific paths only (optional)
+- ✅ Weekly automatic sync (optional)
+
+📖 **See**: [Template Sync Guide](./TEMPLATE_SYNC_GUIDE.md) for detailed instructions.
 
 ---
 
@@ -251,6 +292,7 @@ Labels are automatically applied via reusable workflows:
 - **[Issue Template Guide](./ISSUE_TEMPLATE_SETUP_GUIDE.md)** - How to use and customize issue templates
 - **[Label Setup Guide](./LABEL_SETUP_GUIDE.md)** - Understanding our label system
 - **[Workflow Deployment Guide](./WORKFLOW_DEPLOYMENT_GUIDE.md)** - How to deploy workflows
+- **[Template Sync Guide](./TEMPLATE_SYNC_GUIDE.md)** - Sync changes from template repository
 - **[Code Review Guide](./CODE_REVIEW_GUIDE.md)** - Review standards
 
 ---

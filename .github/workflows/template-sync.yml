@@ -1,0 +1,123 @@
+name: Sync PR and Issue Templates (Reusable)
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-templates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # 0️⃣ Sync PR and Issue templates from .github repository
+      - name: Sync templates from .github
+        id: sync
+        run: |
+          # Detect default branch (main or master)
+          if git show-ref --verify --quiet refs/remotes/origin/main; then
+            DEFAULT_BRANCH="main"
+          elif git show-ref --verify --quiet refs/remotes/origin/master; then
+            DEFAULT_BRANCH="master"
+          else
+            DEFAULT_BRANCH="main"  # Fallback
+          fi
+          
+          # Switch to default branch
+          git checkout "$DEFAULT_BRANCH" 2>/dev/null || git checkout -b "$DEFAULT_BRANCH"
+          echo "default_branch=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
+          
+          # Create sync branch
+          SYNC_BRANCH="chore/sync-templates-$(date +%s)"
+          git checkout -b "$SYNC_BRANCH"
+          echo "sync_branch=$SYNC_BRANCH" >> "$GITHUB_OUTPUT"
+          
+          # Add .github as remote and fetch
+          git remote remove upstream 2>/dev/null || true
+          git remote add upstream "https://github.com/OpenResilienceInitiative/.github.git"
+          git fetch upstream main --quiet
+          
+          # Sync only PR and Issue templates
+          git checkout "upstream/main" -- .github/PULL_REQUEST_TEMPLATE .github/ISSUE_TEMPLATE PULL_REQUEST_TEMPLATE.md 2>/dev/null || true
+          
+          # Commit if changes exist
+          if ! git diff --quiet && ! git diff --cached --quiet; then
+            git add .
+            git commit -m "chore: Sync PR and Issue templates from template repository"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push branch
+        if: steps.sync.outputs.has_changes == 'true'
+        run: |
+          git push -u origin "${{ steps.sync.outputs.sync_branch }}"
+
+      - name: Create PR
+        if: steps.sync.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const syncBranch = '${{ steps.sync.outputs.sync_branch }}';
+            
+            const defaultBranch = '${{ steps.sync.outputs.default_branch }}';
+            
+            // Check if PR already exists
+            const { data: existing } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${syncBranch}`,
+              base: defaultBranch
+            });
+            
+            if (existing.length > 0) {
+              console.log(`PR already exists: ${existing[0].html_url}`);
+              return;
+            }
+            
+            // Create PR
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'chore: Sync PR and Issue templates from template repository',
+              head: syncBranch,
+              base: defaultBranch,
+              body: `## 🔄 Template Sync
+
+This PR syncs PR and Issue templates from \`OpenResilienceInitiative/.github\`.
+
+**Synced:**
+- \`.github/PULL_REQUEST_TEMPLATE/\`
+- \`.github/ISSUE_TEMPLATE/\`
+- \`PULL_REQUEST_TEMPLATE.md\`
+
+*Automated by template sync workflow.*`,
+              maintainer_can_modify: true
+            });
+            
+            console.log(`✅ PR created: ${pr.html_url}`);
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ steps.sync.outputs.has_changes }}" = "true" ]; then
+            echo "✅ Templates synced and PR created" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "✅ Templates are up to date" >> "$GITHUB_STEP_SUMMARY"
+          fi
