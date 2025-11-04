@@ -23,6 +23,8 @@ To provide accessible, secure, and scalable online counseling services through o
 
 ## 🏗️ Platform Architecture
 
+<img width="6228" height="2471" alt="Mermaid Chart - Create complex, visual diagrams with text -2025-11-03-105411" src="https://github.com/user-attachments/assets/364c4d03-6a54-4d86-ba25-073921f35a5c" />
+
 ### 📊 Repository Structure
 
 | Category | Repositories |
@@ -43,6 +45,7 @@ To provide accessible, secure, and scalable online counseling services through o
 - **Messaging**: Matrix Protocol (E2EE)
 - **Orchestration**: Kubernetes, Docker
 - **Observability**: SignOZ, OpenTelemetry
+
 
 ---
 
