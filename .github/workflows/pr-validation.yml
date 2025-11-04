@@ -3,6 +3,10 @@ name: PR Validation & Quality Checks (Reusable)
 on:
   workflow_call:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 permissions:
   pull-requests: write
   contents: read
@@ -10,6 +14,52 @@ permissions:
   actions: read
 
 jobs:
+  detect-changes:
+    name: Detect PR change areas
+    runs-on: ubuntu-latest
+    outputs:
+      frontend_changed: ${{ steps.filter.outputs.frontend }}
+      backend_changed: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Paths filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            frontend:
+              - '**/*.ts'
+              - '**/*.tsx'
+              - '**/*.js'
+              - '**/*.jsx'
+              - '**/*.css'
+              - '**/*.scss'
+              - '**/*.vue'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'yarn.lock'
+              - 'package-lock.json'
+              - 'tsconfig.json'
+              - '**/vite.config.*'
+              - '**/next.config.*'
+              - '.eslintrc*'
+              - '.prettierrc*'
+              - 'prettier.config.*'
+              - 'eslint.config.*'
+            backend:
+              - '**/*.java'
+              - '**/*.xml'
+              - '**/*.yml'
+              - '**/*.yaml'
+              - 'pom.xml'
+              - '**/liquibase/**'
+              - '**/db/**'
+              - '**/migrations/**'
+
   validate-and-label:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -31,50 +81,53 @@ jobs:
       
       - name: Use centralized config files (single source of truth)
         run: |
-          echo "## 📋 Config File Management (Centralized)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✨ **Single Source of Truth**: Config files are fetched from `OpenResilienceInitiative/.github`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Create .github directory if it doesn't exist
+          SUMMARY_FILE="$GITHUB_STEP_SUMMARY"
           mkdir -p .github
-          
+
           # Verify centralized repository checkout succeeded
           if [ ! -d .github-central ]; then
-            echo "❌ Failed to checkout centralized .github repository" >> $GITHUB_STEP_SUMMARY
+            {
+              echo "❌ Failed to checkout centralized .github repository";
+              echo "❌ Failed to checkout centralized .github repository";
+            } >> "$SUMMARY_FILE"
             echo "❌ Failed to checkout centralized .github repository"
             exit 1
           fi
-          
+
           # Copy pr-labeler.yml from centralized (NO local copies needed)
           if [ ! -f .github-central/pr-labeler.yml ]; then
-            echo "❌ **pr-labeler.yml**: Not found in centralized repository" >> $GITHUB_STEP_SUMMARY
+            {
+              echo "❌ **pr-labeler.yml**: Not found in centralized repository";
+              echo "❌ pr-labeler.yml not found in OpenResilienceInitiative/.github";
+            } >> "$SUMMARY_FILE"
             echo "❌ pr-labeler.yml not found in OpenResilienceInitiative/.github"
             exit 1
           fi
-          
           cp .github-central/pr-labeler.yml .github/pr-labeler.yml
-          echo "✅ **pr-labeler.yml**: Fetched from `OpenResilienceInitiative/.github`" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Copied centralized pr-labeler.yml"
-          
+
           # Copy size-labeler.yml from centralized (NO local copies needed)
           if [ ! -f .github-central/size-labeler.yml ]; then
-            echo "❌ **size-labeler.yml**: Not found in centralized repository" >> $GITHUB_STEP_SUMMARY
+            {
+              echo "❌ **size-labeler.yml**: Not found in centralized repository";
+              echo "❌ size-labeler.yml not found in OpenResilienceInitiative/.github";
+            } >> "$SUMMARY_FILE"
             echo "❌ size-labeler.yml not found in OpenResilienceInitiative/.github"
             exit 1
           fi
-          
           cp .github-central/size-labeler.yml .github/size-labeler.yml
-          echo "✅ **size-labeler.yml**: Fetched from `OpenResilienceInitiative/.github`" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Copied centralized size-labeler.yml"
-          
-          # Verify files are in place
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Config files ready for labeler actions**" >> $GITHUB_STEP_SUMMARY
-          echo "   - `.github/pr-labeler.yml` (from centralized)" >> $GITHUB_STEP_SUMMARY
-          echo "   - `.github/size-labeler.yml` (from centralized)" >> $GITHUB_STEP_SUMMARY
-          echo ""
-          echo "✅ All config files fetched from centralized repository - no local copies needed!"
+
+          # Summary (use heredoc with single-quoted delimiter to avoid interpolation/backticks)
+          cat <<'EOF' >> "$SUMMARY_FILE"
+          ## 📋 Config File Management (Centralized)
+
+          ✨ **Single Source of Truth**: Config files are fetched from `OpenResilienceInitiative/.github`
+
+          ✅ **Config files ready for labeler actions**
+             - `.github/pr-labeler.yml` (from centralized)
+             - `.github/size-labeler.yml` (from centralized)
+
+          ✅ All config files fetched from centralized repository - no local copies needed!
+          EOF
 
       # 1️⃣ Validate Semantic PR Title
       - name: Validate semantic PR title
@@ -275,9 +328,9 @@ jobs:
         id: check-sarif
         run: |
           if [ -f "trivy-results.sarif" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload Trivy results to GitHub Security
@@ -290,34 +343,145 @@ jobs:
       # 7️⃣ Code Quality Checks
       - name: Check for TODO/FIXME comments
         run: |
-          echo "## 🔍 Code Quality Check Results" >> $GITHUB_STEP_SUMMARY
-          if grep -r "TODO\|FIXME" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.java" --include="*.py" . 2>/dev/null | grep -v "node_modules" | grep -v ".git" | head -10; then
-            echo "⚠️ **Warning:** Found TODO/FIXME comments. Please address or document them." >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Code Quality Check Results" >> "$GITHUB_STEP_SUMMARY"
+          if grep -r "TODO\|FIXME" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.java" --include="*.py" "." 2>/dev/null | grep -v "node_modules" | grep -v ".git" | head -10; then
+            echo "⚠️ **Warning:** Found TODO/FIXME comments. Please address or document them." >> "$GITHUB_STEP_SUMMARY"
             echo "⚠️ Found TODO/FIXME comments. Please address or document them."
             exit 0  # Warning, not blocking
           else
-            echo "✅ No TODO/FIXME comments found." >> $GITHUB_STEP_SUMMARY
+            echo "✅ No TODO/FIXME comments found." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Check for console.log (non-test files)
         run: |
-          echo "## 🔍 Console.log Check Results" >> $GITHUB_STEP_SUMMARY
-          if grep -r "console\.log" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" . 2>/dev/null | grep -v "node_modules" | grep -v ".git" | grep -v "test" | grep -v "spec" | grep -v "__tests__"; then
-            echo "⚠️ **Warning:** Found console.log statements. Please remove before merging." >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Console.log Check Results" >> "$GITHUB_STEP_SUMMARY"
+          if grep -r "console\\.log" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "." 2>/dev/null | grep -v "node_modules" | grep -v ".git" | grep -v "test" | grep -v "spec" | grep -v "__tests__"; then
+            echo "⚠️ **Warning:** Found console.log statements. Please remove before merging." >> "$GITHUB_STEP_SUMMARY"
             echo "⚠️ Found console.log statements. Please remove before merging."
             exit 0  # Warning, not blocking
           else
-            echo "✅ No console.log statements found (excluding test files)." >> $GITHUB_STEP_SUMMARY
+            echo "✅ No console.log statements found (excluding test files)." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Check for hardcoded secrets patterns
         run: |
-          echo "## 🔍 Security Pattern Check" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Security Pattern Check" >> "$GITHUB_STEP_SUMMARY"
           SECRET_PATTERNS="password|secret|api_key|apikey|access_token|private_key|PRIVATE_KEY"
-          if grep -riE "$SECRET_PATTERNS" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.java" --include="*.py" . 2>/dev/null | grep -v "node_modules" | grep -v ".git" | grep -v "test" | grep -v "spec" | grep -v "package-lock.json" | grep -v "yarn.lock"; then
-            echo "⚠️ **Warning:** Potential hardcoded secrets detected. Please review and use environment variables or secrets management." >> $GITHUB_STEP_SUMMARY
+          if grep -riE "$SECRET_PATTERNS" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.java" --include="*.py" "." 2>/dev/null | grep -v "node_modules" | grep -v ".git" | grep -v "test" | grep -v "spec" | grep -v "package-lock.json" | grep -v "yarn.lock"; then
+            echo "⚠️ **Warning:** Potential hardcoded secrets detected. Please review and use environment variables or secrets management." >> "$GITHUB_STEP_SUMMARY"
             echo "⚠️ Potential hardcoded secrets detected. Please review."
             exit 0  # Warning, not blocking
           else
-            echo "✅ No obvious hardcoded secrets patterns found." >> $GITHUB_STEP_SUMMARY
+            echo "✅ No obvious hardcoded secrets patterns found." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  frontend-standards:
+    name: Frontend Standards (ESLint, Prettier, Node 18.16.1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [detect-changes]
+    if: ${{ needs.detect-changes.outputs.frontend_changed == 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18.16.1
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.16.1'
+          cache: 'npm'
+
+      - name: Install dependencies (auto-detect)
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then
+            corepack enable
+            pnpm i --frozen-lockfile
+          elif [ -f "yarn.lock" ]; then
+            corepack enable
+            yarn install --frozen-lockfile
+          elif [ -f "package-lock.json" ]; then
+            npm ci --include=dev
+          else
+            npm install --include=dev
+          fi
+
+      - name: Verify ESLint (Airbnb + TypeScript)
+        run: |
+          echo "## ✅ ESLint Check (Airbnb + TS)" >> "$GITHUB_STEP_SUMMARY"
+          npx --yes eslint "src/**/*.{ts,tsx,js,jsx}" || { echo "❌ ESLint failed" >> "$GITHUB_STEP_SUMMARY"; exit 1; }
+
+      - name: Verify Prettier formatting (4 spaces, semicolons, single quotes, 120 width)
+        run: |
+          echo "## ✅ Prettier Check" >> "$GITHUB_STEP_SUMMARY"
+          npx --yes prettier --check "." \
+            --tab-width 4 \
+            --single-quote \
+            --print-width 120 \
+            --no-error-on-unmatched-pattern \
+            --semi || { echo "❌ Prettier formatting mismatch" >> "$GITHUB_STEP_SUMMARY"; exit 1; }
+
+      - name: TypeScript compile (no emit)
+        run: |
+          if [ -f "tsconfig.json" ]; then
+            echo "## ✅ TypeScript Compile Check" >> "$GITHUB_STEP_SUMMARY"
+            npx --yes tsc --noEmit
+          else
+            echo "ℹ️ tsconfig.json not found, skipping TS compile check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Optional chaining and .catch usage heuristic
+        run: |
+          echo "## 🔍 Heuristic Checks" >> "$GITHUB_STEP_SUMMARY"
+          # Heuristic: count potential fetch/axios calls lacking .catch (non-blocking)
+          if grep -R "\\bfetch\\(|\\baxios\\." "src" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" 2>/dev/null | grep -v "node_modules" >/dev/null; then
+            MISSING_CATCH_COUNT=$(grep -R "\\b(fetch\\(|axios\\.[a-z][a-z0-9_]*\\()" "src" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" 2>/dev/null \
+              | grep -vE "\\.catch\\(|[[:space:]]*try[[:space:]]*\\{" \
+              | grep -vc '^$' || true)
+            echo "ℹ️ Heuristic only: ensure API calls are handled with .catch or try/catch (found $MISSING_CATCH_COUNT potential occurrences)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit 0
+
+      - name: Cypress (if configured)
+        id: detect-scripts
+        run: |
+          HAS_CYPRESS=$(node -e "try{const p=require('./package.json');console.log(Boolean((p.devDependencies&&p.devDependencies.cypress)||(p.dependencies&&p.dependencies.cypress)))}catch(e){console.log(false)}")
+          HAS_E2E=$(node -e "try{const p=require('./package.json');console.log(Boolean(p.scripts&&p.scripts['test:e2e']))}catch(e){console.log(false)}")
+          echo "has_cypress=$HAS_CYPRESS" >> "$GITHUB_OUTPUT"
+          echo "has_e2e=$HAS_E2E" >> "$GITHUB_OUTPUT"
+
+      - name: Run Cypress tests
+        if: ${{ steps.detect-scripts.outputs.has_cypress == 'true' && steps.detect-scripts.outputs.has_e2e == 'true' }}
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run test:e2e
+          install: false
+
+  backend-standards:
+    name: Backend Standards (Java 17 + Spring Boot Maven)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [detect-changes]
+    if: ${{ needs.detect-changes.outputs.backend_changed == 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Build and test with Maven
+        run: |
+          mvn -B -ntp -DskipTests=false verify
+
+      - name: Liquibase validate (if configured)
+        run: |
+          echo "## 🔍 Liquibase Validate (best-effort)" >> "$GITHUB_STEP_SUMMARY"
+          if grep -R "liquibase-maven-plugin" -n "." 2>/dev/null; then
+            mvn -B -ntp liquibase:validate || { echo "⚠️ Liquibase validate failed. Please check migrations." >> "$GITHUB_STEP_SUMMARY"; exit 1; }
+          else
+            echo "ℹ️ Liquibase plugin not detected. Skipping." >> "$GITHUB_STEP_SUMMARY"
           fi
