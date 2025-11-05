@@ -92,7 +92,7 @@ body:
       options:
         - label: I have searched existing issues and documentation
           required: true
-        - label: I have checked the [ORISO documentation](https://openresilienceinitiative.mintlify.app)
+        - label: I have checked the [ORISO documentation](https://docs.oriso.site)
           required: false
 
 

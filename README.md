@@ -342,7 +342,7 @@ Labels are automatically applied via reusable workflows:
 **Open Resilience Initiative** - Building accessible mental health support through open-source technology.
 
 - **Website**: [openresilience.cc](https://openresilience.cc)
-- **Documentation**: [Platform Docs](https://openresilienceinitiative.mintlify.app)
+- **Documentation**: [Platform Docs](https://docs.oriso.site)
 - **GitHub**: [@OpenResilienceInitiative](https://github.com/OpenResilienceInitiative)
 
 ---

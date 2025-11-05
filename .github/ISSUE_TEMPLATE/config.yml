@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: 📚 Documentation
-    url: https://openresilienceinitiative.mintlify.app
+    url: https://docs.oriso.site
     about: Please check our documentation for setup guides, API references, and architecture details.
   - name: 💬 Discussions
     url: https://github.com/OpenResilienceInitiative/.github/discussions

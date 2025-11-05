@@ -5,7 +5,7 @@
 **Building Online Counseling & Consultation Systems for Resilience and Support**
 
 [![Website](https://img.shields.io/badge/Website-openresilience.cc-blue)](https://openresilience.cc)
-[![Documentation](https://img.shields.io/badge/Docs-Platform%20Guide-green)](https://openresilienceinitiative.mintlify.app)
+[![Documentation](https://img.shields.io/badge/Docs-Platform%20Guide-green)](https://docs.oriso.site)
 
 </div>
 
@@ -50,7 +50,7 @@ To provide accessible, secure, and scalable online counseling services through o
 
 ## 🔗 Quick Links
 
-- **📘 Platform Documentation**: [openresilienceinitiative.mintlify.app](https://openresilienceinitiative.mintlify.app)
+- **📘 Platform Documentation**: [docs.oriso.site](https://docs.oriso.site)
 - **🌐 Website**: [openresilience.cc](https://openresilience.cc)
 - **📚 Organization Standards**: [`.github` repository](https://github.com/OpenResilienceInitiative/.github)
 
