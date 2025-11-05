@@ -54,7 +54,6 @@ body:
         Describe the problem or use case this feature would address...
         
         Example: "As a [user type], I need [something] so that [benefit]."
-      render: markdown
     validations:
       required: true
 
@@ -71,7 +70,6 @@ body:
         - Key functionality
         - UI/UX considerations (if applicable)
         - Technical approach (if known)
-      render: markdown
     validations:
       required: true
 
@@ -93,7 +91,6 @@ body:
         - Target users: [e.g., consultants, admins, end users]
         - Expected benefits: [e.g., improved UX, better performance, security enhancement]
         - Estimated users affected: [if known]
-      render: markdown
     validations:
       required: false
 
@@ -108,7 +105,6 @@ body:
         - API changes needed: [yes/no and details if known]
         - Security considerations: [any security implications]
         - Performance considerations: [any performance implications]
-      render: markdown
     validations:
       required: false
 
@@ -122,7 +118,6 @@ body:
         - Technical Spec: [link]
         - Related Issues: #[issue-number]
         - External References: [links]
-      render: markdown
     validations:
       required: false
 
