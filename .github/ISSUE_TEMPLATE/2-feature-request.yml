@@ -13,7 +13,8 @@ body:
     id: target-service
     attributes:
       label: Target Service/Component
-      description: Which service or component would this feature affect?
+      description: Which service(s) or component(s) would this feature affect? (You can select multiple)
+      multiple: true
       options:
         - Frontend (ORISO-Frontend)
         - Admin Panel (ORISO-Admin)

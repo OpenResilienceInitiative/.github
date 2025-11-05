@@ -13,7 +13,8 @@ body:
     id: affected-service
     attributes:
       label: Affected Service/Component
-      description: Which service or component is affected?
+      description: Which service(s) or component(s) are affected? (You can select multiple)
+      multiple: true
       options:
         - Frontend (ORISO-Frontend)
         - Admin Panel (ORISO-Admin)

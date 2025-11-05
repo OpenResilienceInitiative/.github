@@ -30,7 +30,8 @@ body:
     id: related-service
     attributes:
       label: Related Service/Component
-      description: Which service or component is your question about? (if applicable)
+      description: Which service(s) or component(s) is your question about? (You can select multiple, if applicable)
+      multiple: true
       options:
         - Frontend (ORISO-Frontend)
         - Admin Panel (ORISO-Admin)
