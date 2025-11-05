@@ -1,13 +1,2 @@
 blank_issues_enabled: false
-contact_links:
-  - name: 📚 Documentation
-    url: https://docs.oriso.site
-    about: Please check our documentation for setup guides, API references, and architecture details.
-  - name: 💬 Discussions
-    url: https://github.com/OpenResilienceInitiative/.github/discussions
-    about: Ask questions and share ideas in our community discussions.
-  - name: 🔒 Security Issues
-    url: https://github.com/OpenResilienceInitiative/.github/security/advisories/new
-    about: Please report security vulnerabilities privately through GitHub Security Advisories.
-
 
