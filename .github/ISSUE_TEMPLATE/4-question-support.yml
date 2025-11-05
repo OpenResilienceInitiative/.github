@@ -55,7 +55,6 @@ body:
       description: What would you like to know?
       placeholder: |
         Please provide a clear and detailed question...
-      render: markdown
     validations:
       required: true
 
@@ -69,7 +68,6 @@ body:
         - What have you tried?
         - What resources have you checked? (docs, issues, etc.)
         - Any error messages or logs?
-      render: markdown
     validations:
       required: false
 
@@ -82,7 +80,6 @@ body:
         - OS: [e.g., macOS 14.0, Ubuntu 22.04]
         - Environment: [Local/Dev/Staging/Production]
         - Versions: [Java, Node, Docker, etc. if relevant]
-      render: markdown
     validations:
       required: false
 

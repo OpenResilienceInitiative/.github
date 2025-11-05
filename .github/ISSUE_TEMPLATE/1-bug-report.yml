@@ -63,7 +63,6 @@ body:
         2. Click on '....'
         3. Scroll down to '....'
         4. See error
-      render: markdown
     validations:
       required: true
 
@@ -97,7 +96,6 @@ body:
         - Node Version: [e.g., Node 18.16.1] (if applicable)
         - Environment: [Local/Dev/Staging/Production]
         - Service Version/Commit: [if known]
-      render: markdown
     validations:
       required: false
 
@@ -118,7 +116,6 @@ body:
       description: If applicable, add screenshots or videos to help explain your problem. You can drag and drop images here.
       placeholder: |
         ![Screenshot description](image-url)
-      render: markdown
     validations:
       required: false
 
