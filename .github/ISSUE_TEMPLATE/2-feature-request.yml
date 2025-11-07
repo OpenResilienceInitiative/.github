@@ -1,8 +1,8 @@
 name: ✨ Feature Request
 description: Suggest a new feature or enhancement for the ORISO platform
-title: "[Feature]: "
-labels: ["enhancement", "triage"]
-type: feature
+title: "[Feature Request]: "
+labels: ["enhancement", "feature-request", "triage"]
+type: feature-request
 body:
   - type: markdown
     attributes:
