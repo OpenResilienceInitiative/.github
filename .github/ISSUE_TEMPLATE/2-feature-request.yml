@@ -2,7 +2,7 @@ name: ✨ Feature Request
 description: Suggest a new feature or enhancement for the ORISO platform
 title: "[Feature Request]: "
 labels: ["enhancement", "feature-request", "triage"]
-type: feature-request
+type: feature
 body:
   - type: markdown
     attributes:
