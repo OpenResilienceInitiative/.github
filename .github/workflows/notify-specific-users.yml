@@ -1,0 +1,23 @@
+name: Notify Slack for issue creation by specific PMs
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  notify_slack:
+    runs-on: ubuntu-latest
+
+    # Only trigger when the issue creator matches selected usernames
+    if: github.actor == 'joro4b' || github.actor == 'BjoernLudwig' || github.actor == 'maj-nws' || github.actor == 'alkitrend'
+
+    steps:
+      - name: Send filtered Slack notification
+        run: |
+          payload="{
+            \"text\": \":rotating_light: *New Issue Created by ${{ github.actor }}*\n*Repository:* ${{ github.repository }}\n*Title:* ${{ github.event.issue.title }}\n*URL:* ${{ github.event.issue.html_url }}\"
+          }"
+
+          curl -X POST -H "Content-type: application/json" \
+          --data "$payload" \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
