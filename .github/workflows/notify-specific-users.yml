@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Only trigger when the issue creator matches selected usernames
-    if: github.actor == 'joro4b' || github.actor == 'BjoernLudwig' || github.actor == 'maj-nws' || github.actor == 'alkitrend'
+    if: github.actor == 'joro4b' || github.actor == 'BjoernLudwig' || github.actor == 'maj-nws' || github.actor == 'alkitrend' || github.actor == 'nikunjdecyb'
 
     steps:
       - name: Send filtered Slack notification
