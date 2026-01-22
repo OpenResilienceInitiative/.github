@@ -22,7 +22,8 @@ To provide accessible, secure, and scalable online counseling services through o
 ---
 
 ## 🏗️ Platform Architecture
-<img width="2793" height="1375" alt="diagram-export-5-11-2025-12_46_55-AM" src="https://github.com/user-attachments/assets/3e07812b-5295-4968-a4b4-684b6f61ff2c" />
+
+<img width="6950" height="4241" alt="architecture-overview" src="https://github.com/user-attachments/assets/01c92c05-22c5-4569-b28b-12bb5edb330c" />
 
 ### 📊 Repository Structure
 
@@ -30,21 +31,38 @@ To provide accessible, secure, and scalable online counseling services through o
 |----------|-------------|
 | **Frontend** | `ORISO-Frontend`, `ORISO-Admin` |
 | **Backend Services** | `ORISO-UserService`, `ORISO-TenantService`, `ORISO-AgencyService`, `ORISO-ConsultingTypeService` |
-| **Infrastructure** | `ORISO-Database`, `ORISO-Nginx`, `ORISO-Keycloak`, `ORISO-Redis`, `ORISO-Kubernetes` |
-| **Communication** | `ORISO-Matrix`, `ORISO-Element` |
-| **Monitoring** | `ORISO-HealthDashboard`, `ORISO-SignOZ` |
+| **Infrastructure** | `ORISO-Database`, `ORISO-Keycloak`, `ORISO-Redis`, `ORISO-Kubernetes` |
+| **Communication** | `ORISO-Matrix`, `ORISO-Element`, `ORISO-ElementCall`, `ORISO-Livekit` |
+| **Monitoring** | `ORISO-HealthDashboard`, `ORISO-SignOZ`, `ORISO-Status` |
 | **Documentation** | `ORISO-Docs` |
 
 ### 🛠️ Technology Stack
 
 - **Frontend**: React 18, TypeScript, Vite
-- **Backend**: Spring Boot, Java 17, REST APIs
+- **Backend**: Spring Boot 2.7.14, Java 17, REST APIs
 - **Databases**: MariaDB, MongoDB, PostgreSQL, Redis
+- **Message Broker**: RabbitMQ
 - **Authentication**: Keycloak, OIDC, JWT
 - **Messaging**: Matrix Protocol (E2EE)
-- **Orchestration**: Kubernetes, Docker
+- **Video Calls**: LiveKit (WebRTC/SFU), Element Call
+- **Orchestration**: Kubernetes (k3s), Helm 3.x, Docker
+- **Ingress**: Nginx Ingress Controller, Cert-Manager (TLS automation)
 - **Observability**: SignOZ, OpenTelemetry
 
+### 🚀 Deployment Architecture
+
+ORISO is deployed as a complete platform using **Helm charts**:
+
+- **21 services** managed via umbrella chart (`oriso-platform`)
+- **Kubernetes-native** deployment with automatic scaling
+- **TLS automation** via Cert-Manager and Let's Encrypt
+- **Centralized database management** (Liquibase disabled in services)
+- **Multi-phase deployment**: Infrastructure → Authentication → Communication → WebRTC → Backend → Frontend → Monitoring
+
+**Quick Deploy:** sh
+cd caritas-workspace/ORISO-Kubernetes/helm
+helm dependency update oriso-platform
+helm install oriso-platform ./oriso-platform --namespace caritas --create-namespace -f values.yaml
 
 ---
 
