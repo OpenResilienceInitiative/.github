@@ -22,7 +22,7 @@ To provide accessible, secure, and scalable online counseling services through o
 ---
 
 ## 🏗️ Platform Architecture
-<img width="2793" height="1375" alt="diagram-export-5-11-2025-12_46_55-AM" src="https://github.com/user-attachments/assets/3e07812b-5295-4968-a4b4-684b6f61ff2c" />
+<img width="2793" height="1375" alt="2026-01-20 ORISO architectur diagram" src="https://github.com/user-attachments/assets/4783fdd1-787e-4aa0-92da-99d01039fb33" />
 
 ### 📊 Repository Structure
 
