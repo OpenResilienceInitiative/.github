@@ -1,0 +1,36 @@
+name: CI - Pull Request (Reusable)
+
+on:
+  workflow_call:
+
+env:
+  REGISTRY: ghcr.io
+  ORG: openresilienceinitiative
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+    
+    # Java Projects
+    - name: Compile and Package Java application
+      uses: OpenResilienceInitiative/.github/.github/actions/maven-build@main
+      with:
+        java_version: '17'
+
+    # Node.js Projects
+    # TODO: one option is to use the same workflow, and add one more step here 
+    # for node.js/frontend projects e.g. "node-build" and make maven- and node-build
+    # conditional based on the presence of pom.xml or package.json file in the repo
+    # or other criteria.
+
+    # Docker Image Build and Publish (common)
+    - name: Create Docker image
+      uses: OpenResilienceInitiative/.github/.github/actions/docker-build-push@main
+      with:
+        push_to_ghcr: false
+        image_name: oriso-tenantservice
+        github_token: ${{ secrets.GITHUB_TOKEN }}
