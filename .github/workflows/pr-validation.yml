@@ -314,7 +314,10 @@ jobs:
       # 6️⃣ Security Scan
       - name: Run Trivy vulnerability scanner
         id: trivy-scan
-        uses: aquasecurity/trivy-action@0.33.1
+        # Pinned by commit SHA (security finding S9): v0.36.0.
+        # NB: the previous pin `0.33.1` (without the v prefix) is not an
+        # existing tag, which made every consumer PR check fail.
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         continue-on-error: true
         with:
           scan-type: 'fs'
