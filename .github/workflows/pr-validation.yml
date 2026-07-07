@@ -469,7 +469,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # The backend paths-filter above matches any **/*.yml / **/*.yaml change
+      # (e.g. workflow files), so this job also fires in repos that are not
+      # Maven projects at all (.github itself, ORISO-Docs). Skip gracefully
+      # instead of failing on a missing pom.xml.
+      - name: Detect Maven project
+        id: maven
+        run: |
+          if [ -f pom.xml ] || ls */pom.xml >/dev/null 2>&1; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ No pom.xml in this repository — Backend Standards skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Setup Java 17
+        if: steps.maven.outputs.present == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -477,10 +492,12 @@ jobs:
           cache: 'maven'
 
       - name: Build and test with Maven
+        if: steps.maven.outputs.present == 'true'
         run: |
           mvn -B -ntp -DskipTests=false verify
 
       - name: Liquibase validate (if configured)
+        if: steps.maven.outputs.present == 'true'
         run: |
           echo "## 🔍 Liquibase Validate (best-effort)" >> "$GITHUB_STEP_SUMMARY"
           if grep -R "liquibase-maven-plugin" -n "." 2>/dev/null; then
