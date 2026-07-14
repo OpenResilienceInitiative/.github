@@ -14,7 +14,7 @@
 
 ### 🏁 Mission
 
-To provide accessible, secure, and scalable online counseling services through open-source technology that empowers communities to deliver mental health support.
+To provide accessible, intuitive, secure and scalable online counseling services through open-source technology.
 
 ---
 
