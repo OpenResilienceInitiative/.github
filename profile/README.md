@@ -4,9 +4,6 @@
 
 **Building Online Counseling & Consultation Systems for Resilience and Support**
 
-[![Website](https://img.shields.io/badge/Website-openresilience.cc-blue)](https://openresilience.cc)
-[![Documentation](https://img.shields.io/badge/Docs-Platform%20Guide-green)](https://docs.oriso.site)
-
 </div>
 
 ---
@@ -44,15 +41,6 @@ To provide accessible, secure, and scalable online counseling services through o
 - **Messaging**: Matrix Protocol (E2EE)
 - **Orchestration**: Kubernetes, Docker
 - **Observability**: SignOZ
-
-
----
-
-## 🔗 Quick Links
-
-- **📘 Platform Documentation**: [docs.oriso.site](https://docs.oriso.site)
-- **🌐 Website**: [openresilience.cc](https://openresilience.cc)
-- **📚 Organization Standards**: [`.github` repository](https://github.com/OpenResilienceInitiative/.github)
 
 ---
 
