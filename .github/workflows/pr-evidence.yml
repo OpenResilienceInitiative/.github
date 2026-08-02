@@ -1,0 +1,123 @@
+# Reusable evidence publication for every repository in the organisation.
+#
+# A repository opts in by adding the caller workflow. This one collects only
+# the directories it was told about, skips quietly when a repository has no
+# evidence, and never replaces that repository's own tests — it runs after
+# them and reports what they produced.
+name: pr-evidence
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        description: 'oriso, orimo or dreambau'
+        required: true
+        type: string
+      environment:
+        description: 'local, pre-dev, dev or production-test'
+        required: false
+        default: pre-dev
+        type: string
+      results-directory:
+        description: 'Playwright or test output directory'
+        required: false
+        default: test-results
+        type: string
+      report-directory:
+        description: 'HTML report directory; packed into one archive'
+        required: false
+        default: playwright-report
+        type: string
+      documents-directory:
+        description: 'Where REPORT.md, RUN-STATE.md and friends live'
+        required: false
+        default: '.'
+        type: string
+      title:
+        required: false
+        default: 'Verification evidence'
+        type: string
+      result:
+        description: 'Override the result instead of reading it from the report'
+        required: false
+        default: ''
+        type: string
+      # Mandatory evidence is flagged, not silently tolerated.
+      require-evidence:
+        description: 'Fail the job when no artefact was found'
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      evidence-token:
+        description: 'Project-scoped evidence identity. Never a MinIO key.'
+        required: true
+
+jobs:
+  publish:
+    name: Publish evidence
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Only so the comment can be written. The gateway holds no GitHub token.
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch the publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .evidence
+          gh api \
+            -H "Accept: application/vnd.github.raw" \
+            repos/OpenResilienceInitiative/.github/contents/scripts/publish-evidence.mjs \
+            > .evidence/publish-evidence.mjs
+          node --check .evidence/publish-evidence.mjs
+
+      - name: Look for artefacts
+        id: scan
+        run: |
+          found=0
+          for dir in "${{ inputs.results-directory }}" "${{ inputs.report-directory }}"; do
+            if [ -d "$dir" ] && [ -n "$(find "$dir" -type f -print -quit)" ]; then found=1; fi
+          done
+          for doc in REPORT.md RUN-STATE.md FIX-LOG.md SCREENSHOT-INDEX.md; do
+            if [ -f "${{ inputs.documents-directory }}/$doc" ]; then found=1; fi
+          done
+          echo "found=$found" >> "$GITHUB_OUTPUT"
+          if [ "$found" = "0" ]; then
+            echo "::notice title=No evidence::This repository produced no evidence artefacts for this run."
+          fi
+
+      - name: Fail when evidence is required but missing
+        if: steps.scan.outputs.found == '0' && inputs.require-evidence
+        run: |
+          echo "::error title=Evidence required::This workflow requires evidence and none was produced."
+          exit 1
+
+      - name: Pack the HTML report
+        if: steps.scan.outputs.found == '1'
+        run: |
+          if [ -d "${{ inputs.report-directory }}" ]; then
+            (cd "${{ inputs.report-directory }}" && zip -qr "$GITHUB_WORKSPACE/evidence-report.zip" .)
+          fi
+
+      - name: Publish
+        if: steps.scan.outputs.found == '1'
+        env:
+          EVIDENCE_TOKEN: ${{ secrets.evidence-token }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node .evidence/publish-evidence.mjs \
+            --project "${{ inputs.project }}" \
+            --environment "${{ inputs.environment }}" \
+            --results "${{ inputs.results-directory }}" \
+            --docs "${{ inputs.documents-directory }}" \
+            --title "${{ inputs.title }}" \
+            ${{ inputs.result != '' && format('--result {0}', inputs.result) || '' }} \
+            $( [ -f evidence-report.zip ] && echo "--report-archive evidence-report.zip" )

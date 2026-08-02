@@ -1,0 +1,22 @@
+# Copy this into a repository to opt into evidence publication.
+#
+# It runs after that repository's own tests rather than instead of them, and it
+# is independent of CodeRabbit and any other review automation.
+name: pr-evidence
+
+on:
+  workflow_run:
+    # The name of the workflow that produces the artefacts.
+    workflows: ["e2e", "nightly-e2e", "test"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  evidence:
+    uses: OpenResilienceInitiative/.github/.github/workflows/pr-evidence.yml@main
+    with:
+      project: oriso
+      environment: pre-dev
+      title: Verification evidence
+    secrets:
+      evidence-token: ${{ secrets.ORISO_EVIDENCE_TOKEN }}
