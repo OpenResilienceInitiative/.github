@@ -8,7 +8,7 @@
 
 ---
 
-## What role does ORISO play inside our open source resilience initiative?
+## What role does ORISO play inside our open-source resilience initiative?
 
 **ORISO (Online Resilience Initiative Single Organisation)** is the dedicated instance of the Open Resilience Initiative designed for single large organisations. It provides a secure, multi-tenant counseling infrastructure where one organisation can manage multiple internal counseling units within a unified, scalable architecture.
 
@@ -55,6 +55,8 @@ We welcome contributions! Our organization uses standardized workflows and templ
 - ✅ **Auto-labeling** - Work type, area, priority, size
 - ✅ **Security Scanning** - Automatic vulnerability detection
 - ✅ **Code Quality Checks** - Automated quality validation
+
+**📖 Guides**: See [`.github` repository](https://github.com/OpenResilienceInitiative/.github) for contribution guidelines.
 
 ---
 
