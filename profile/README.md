@@ -27,7 +27,7 @@ To provide accessible, intuitive, secure and scalable online counseling services
 |----------|-------------|
 | **Frontend** | [`ORISO-Frontend`](https://github.com/OpenResilienceInitiative/ORISO-Frontend), [`ORISO-Admin`](https://github.com/OpenResilienceInitiative/ORISO-Admin) |
 | **Backend Services** | [`ORISO-UserService`](https://github.com/OpenResilienceInitiative/ORISO-UserService), [`ORISO-TenantService`](https://github.com/OpenResilienceInitiative/ORISO-TenantService), [`ORISO-AgencyService`](https://github.com/OpenResilienceInitiative/ORISO-AgencyService), [`ORISO-ConsultingTypeService`](https://github.com/OpenResilienceInitiative/ORISO-ConsultingTypeService) |
-| **Infrastructure** | [`ORISO-Helm`](https://github.com/OpenResilienceInitiative/ORISO-Helm) |
+| **Infrastructure** | [`ORISO-Helm`](https://github.com/OpenResilienceInitiative/ORISO-Helm), [`ORISO-Keycloak`](https://github.com/OpenResilienceInitiative/ORISO-Keycloak), [`.github`](https://github.com/OpenResilienceInitiative/.github/blob/main/profile/README.md) |
 | **Communication** | [`ORISO-Livekit`](https://github.com/OpenResilienceInitiative/ORISO-Livekit), [`ORISO-ElementCall`](https://github.com/OpenResilienceInitiative/ORISO-ElementCall) |
 | **Monitoring** | [`ORISO-HealthDashboard`](https://github.com/OpenResilienceInitiative/ORISO-HealthDashboard), [`ORISO-SignOZ`](https://github.com/OpenResilienceInitiative/ORISO-SignOZ) |
 | **Documentation** | [`ORISO-Docs`](https://github.com/OpenResilienceInitiative/ORISO-Docs) |
@@ -35,7 +35,7 @@ To provide accessible, intuitive, secure and scalable online counseling services
 ### 🛠️ Technology Stack
 
 - **Frontend**: React 19, TypeScript, Vite
-- **Backend**: Spring Boot, Java 21, REST APIs
+- **Backend**: Spring Boot 4, Java 21, REST APIs
 - **Databases**: MariaDB, MongoDB, PostgreSQL, Redis
 - **Authentication**: Keycloak, OIDC, JWT
 - **Messaging**: Matrix Protocol (E2EE)
