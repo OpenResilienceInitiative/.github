@@ -8,13 +8,15 @@
 
 ---
 
-## What role plays ORISO inside our open source resilience initiative?
+## What role does ORISO play inside our open-source resilience initiative?
 
 **ORISO (Online Resilience Initiative Single Organisation)** is the dedicated instance of the Open Resilience Initiative designed for single large organisations. It provides a secure, multi-tenant counseling infrastructure where one organisation can manage multiple internal counseling units within a unified, scalable architecture.
 
 ### 🏁 Mission
 
 To provide accessible, intuitive, secure and scalable online counseling services through open-source technology.
+
+📚 Documentation: [docs.oriso.site](https://docs.oriso.site)
 
 ---
 
@@ -28,8 +30,9 @@ To provide accessible, intuitive, secure and scalable online counseling services
 | **Frontend** | [`ORISO-Frontend`](https://github.com/OpenResilienceInitiative/ORISO-Frontend), [`ORISO-Admin`](https://github.com/OpenResilienceInitiative/ORISO-Admin) |
 | **Backend Services** | [`ORISO-UserService`](https://github.com/OpenResilienceInitiative/ORISO-UserService), [`ORISO-TenantService`](https://github.com/OpenResilienceInitiative/ORISO-TenantService), [`ORISO-AgencyService`](https://github.com/OpenResilienceInitiative/ORISO-AgencyService), [`ORISO-ConsultingTypeService`](https://github.com/OpenResilienceInitiative/ORISO-ConsultingTypeService) |
 | **Infrastructure** | [`ORISO-Helm`](https://github.com/OpenResilienceInitiative/ORISO-Helm) |
+| **Identity** | [`ORISO-Keycloak`](https://github.com/OpenResilienceInitiative/ORISO-Keycloak) |
 | **Communication** | [`ORISO-Livekit`](https://github.com/OpenResilienceInitiative/ORISO-Livekit), [`ORISO-ElementCall`](https://github.com/OpenResilienceInitiative/ORISO-ElementCall) |
-| **Monitoring** | [`ORISO-HealthDashboard`](https://github.com/OpenResilienceInitiative/ORISO-HealthDashboard), [`ORISO-SignOZ`](https://github.com/OpenResilienceInitiative/ORISO-SignOZ) |
+| **Monitoring** | [`ORISO-HealthDashboard`](https://github.com/OpenResilienceInitiative/ORISO-HealthDashboard), [`ORISO-SigNoz`](https://github.com/OpenResilienceInitiative/ORISO-SigNoz) |
 | **Documentation** | [`ORISO-Docs`](https://github.com/OpenResilienceInitiative/ORISO-Docs) |
 
 ### 🛠️ Technology Stack
@@ -40,7 +43,7 @@ To provide accessible, intuitive, secure and scalable online counseling services
 - **Authentication**: Keycloak, OIDC, JWT
 - **Messaging**: Matrix Protocol (E2EE)
 - **Orchestration**: Kubernetes, Docker
-- **Observability**: SignOZ
+- **Observability**: SigNoz
 
 ---
 
@@ -61,7 +64,6 @@ We welcome contributions! Our organization uses standardized workflows and templ
 
 **Built with ❤️ by the Open Resilience Initiative team**
 
-[![License](https://img.shields.io/badge/License-AGPL--3.0-green)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-green)](https://github.com/OpenResilienceInitiative/.github/blob/main/LICENSE)
 
 </div>
-
