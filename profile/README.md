@@ -16,8 +16,6 @@
 
 To provide accessible, intuitive, secure and scalable online counseling services through open-source technology.
 
-📚 Documentation: [docs.oriso.site](https://docs.oriso.site)
-
 ---
 
 ## 🏗️ Platform Architecture
