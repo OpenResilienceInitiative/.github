@@ -56,8 +56,6 @@ We welcome contributions! Our organization uses standardized workflows and templ
 - ✅ **Security Scanning** - Automatic vulnerability detection
 - ✅ **Code Quality Checks** - Automated quality validation
 
-**📖 Guides**: See [`.github` repository](https://github.com/OpenResilienceInitiative/.github) for contribution guidelines.
-
 ---
 
 <div align="center">
