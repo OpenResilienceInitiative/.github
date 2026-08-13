@@ -28,8 +28,6 @@ To provide accessible, intuitive, secure and scalable online counseling services
 | Category | Repositories |
 |----------|-------------|
 | **Frontend** | [`ORISO-Frontend`](https://github.com/OpenResilienceInitiative/ORISO-Frontend), [`ORISO-Admin`](https://github.com/OpenResilienceInitiative/ORISO-Admin) |
-| **Backend Services** | [`ORISO-UserService`](https://github.com/OpenResilienceInitiative/ORISO-UserService), [`ORISO-TenantService`](https://github.com/OpenResilienceInitiative/ORISO-TenantService), [`ORISO-AgencyService`](https://github.com/OpenResilienceInitiative/ORISO-AgencyService), [`ORISO-ConsultingTypeService`](https://github.com/OpenResilienceInitiative/ORISO-ConsultingTypeService) |
-| **Infrastructure** | [`ORISO-Helm`](https://github.com/OpenResilienceInitiative/ORISO-Helm) |
 | **Backend Services** | [`ORISO-UserService`](https://github.com/OpenResilienceInitiative/ORISO-UserService), [`ORISO-TenantService`](https://github.com/OpenResilienceInitiative/ORISO-TenantService), [`ORISO-AgencyService`](https://github.com/OpenResilienceInitiative/ORISO-AgencyService), [`ORISO-ConsultingTypeService`](https://github.com/OpenResilienceInitiative/ORISO-ConsultingTypeService), [`ORISO-Keycloak`](https://github.com/OpenResilienceInitiative/ORISO-Keycloak) |
 | **Infrastructure** | [`ORISO-Helm`](https://github.com/OpenResilienceInitiative/ORISO-Helm), [`.github`](https://github.com/OpenResilienceInitiative/.github) |
 | **Communication** | [`ORISO-Livekit`](https://github.com/OpenResilienceInitiative/ORISO-Livekit), [`ORISO-ElementCall`](https://github.com/OpenResilienceInitiative/ORISO-ElementCall) |
