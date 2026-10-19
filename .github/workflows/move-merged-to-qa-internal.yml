@@ -1,0 +1,46 @@
+name: Move merged tickets to QA internal
+
+# Org-wide: finds PRs merged into `dev` in any ORISO repository, moves the tickets
+# they close (`Closes #N`) to "QA internal" on the ORISO Roadmap, and fills a
+# missing assignee or reviewer from the interaction history.
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only print what would change"
+        type: boolean
+        default: true
+      lookback_hours:
+        description: "How far back to look for merges"
+        default: "3"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: move-merged-to-qa-internal
+  cancel-in-progress: false
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        working-directory: .github/scripts
+        run: python -m unittest -v test_qa_internal_mover
+      - name: Move tickets
+        working-directory: .github/scripts
+        env:
+          # GITHUB_TOKEN cannot write org projects: fine-grained token with
+          # org Projects read/write, repo Issues + Pull requests read/write.
+          GH_TOKEN: ${{ secrets.ORISO_PROJECT_AUTOMATION_TOKEN }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          LOOKBACK_HOURS: ${{ inputs.lookback_hours || '3' }}
+        run: python qa_internal_mover.py
