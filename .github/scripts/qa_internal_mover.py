@@ -61,7 +61,8 @@ def parse_closing_refs(body, org, repo):
                 owner = r.group(4) or org
                 name = r.group(5) or repo
                 ref = (owner, name, int(r.group(6)))
-            if ref not in refs:
+            # Only tickets in our own org; a body may name anything.
+            if ref[0].lower() == org.lower() and ref not in refs:
                 refs.append(ref)
     return refs
 
@@ -111,7 +112,7 @@ query($q: String!, $after: String) {
   search(query: $q, type: ISSUE, first: 50, after: $after) {
     pageInfo { hasNextPage endCursor }
     nodes { ... on PullRequest {
-      number url body mergedAt
+      number url body mergedAt lastEditedAt
       repository { name owner { login } }
       author { %(a)s } mergedBy { %(a)s }
       assignees(first: 10) { nodes { %(a)s } }
@@ -188,7 +189,11 @@ def pick_reviewer(pr):
 def process(pr, project, log):
     owner, repo = pr["repository"]["owner"]["login"], pr["repository"]["name"]
     pr_ref = f"{repo}#{pr['number']}"
-    refs = parse_closing_refs(pr["body"], owner, repo)
+    # The body is editable after the merge; only trust what was there when it merged.
+    if pr.get("lastEditedAt") and pr["lastEditedAt"] > pr["mergedAt"]:
+        log(f"- {pr_ref}: description edited after the merge, skipped (move the ticket by hand)")
+        return
+    refs = parse_closing_refs(pr["body"], ORG, repo) if owner.lower() == ORG.lower() else []
     if not refs:
         log(f"- {pr_ref}: no `Closes` reference, nothing to move")
         return

@@ -44,6 +44,11 @@ class ParseClosingRefs(unittest.TestCase):
         self.assertEqual(parse_closing_refs(body, ORG, REPO), [])
 
 
+    def test_other_orgs_are_ignored(self):
+        body = "Closes evil/repo#1, https://github.com/evil/repo/issues/2 and #3"
+        self.assertEqual(parse_closing_refs(body, ORG, REPO), [(ORG, REPO, 3)])
+
+
 class PickPeople(unittest.TestCase):
     def test_human_review_counts_and_bots_do_not(self):
         p = pr(reviews={"nodes": [{"author": bot("coderabbitai")}, {"author": user("shazia-k")}]})
