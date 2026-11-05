@@ -1,8 +1,8 @@
 name: Move merged tickets to QA internal
 
 # Org-wide: finds PRs merged into `dev` in any ORISO repository, moves the tickets
-# they close (`Closes #N`) to "QA internal" on the ORISO Roadmap, and fills a
-# missing assignee or reviewer from the interaction history.
+# they close (`Closes #N`) to "QA internal" only when assignee, exact-head human approval
+# and linked-PR evidence are complete. Missing evidence is left for manual triage.
 on:
   schedule:
     - cron: "*/20 * * * *"

@@ -4,7 +4,9 @@
 A ticket counts as delivered when a merged PR into `dev` names it with a closing
 keyword (Closes/Fixes/Resolves). "Refs" and "Part of" mean partial work and are
 ignored. Before the move the ticket must have an assignee and the PR a human
-reviewer; when either is missing it is taken from the interaction history.
+reviewer. If either is missing, related PRs remain open, or evidence is incomplete,
+the ticket is left for manual triage. Referenced PRs are a conservative signal,
+not proof that unlinked work is complete.
 
 Environment:
   GH_TOKEN        token with org Projects read/write and Issues + Pull requests write
@@ -14,7 +16,7 @@ Environment:
   BASE_BRANCH     default dev
   LOOKBACK_HOURS  default 3
   DRY_RUN         "true" prints the plan and writes nothing
-  ACTIVE_PEOPLE   comma list; only these are ever derived from the history
+  ACTIVE_PEOPLE   comma list; only these human reviewers are accepted
 """
 import json
 import os
@@ -112,15 +114,10 @@ query($q: String!, $after: String) {
   search(query: $q, type: ISSUE, first: 50, after: $after) {
     pageInfo { hasNextPage endCursor }
     nodes { ... on PullRequest {
-      number url body mergedAt lastEditedAt
+      number url body mergedAt lastEditedAt headRefOid
       repository { name owner { login } }
       author { %(a)s } mergedBy { %(a)s }
-      assignees(first: 10) { nodes { %(a)s } }
-      reviews(first: 50) { nodes { author { %(a)s } } }
-      reviewRequests(first: 10) { nodes { requestedReviewer { ... on User { %(a)s } } } }
-      comments(last: 50) { nodes { author { %(a)s } } }
-      timelineItems(last: 50, itemTypes: [REVIEW_REQUESTED_EVENT]) {
-        nodes { ... on ReviewRequestedEvent { requestedReviewer { ... on User { %(a)s } } } } }
+      reviews(last: 100) { pageInfo { hasPreviousPage } nodes { state commit { oid } author { %(a)s } } }
     } }
   }
 }""" % {"a": ACTOR}
@@ -130,11 +127,12 @@ query($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) { issue(number: $number) {
     id number url title
     assignees(first: 10) { nodes { %(a)s } }
-    comments(last: 100) { nodes { body author { %(a)s } } }
-    timelineItems(last: 50, itemTypes: [ASSIGNED_EVENT, UNASSIGNED_EVENT]) { nodes {
-      ... on AssignedEvent { assignee { ... on User { %(a)s } } }
-      ... on UnassignedEvent { assignee { ... on User { %(a)s } } } } }
-    projectItems(first: 20) { nodes {
+    comments(last: 100) { pageInfo { hasPreviousPage } nodes { body author { %(a)s } } }
+    linkedPullRequests: timelineItems(first: 100, itemTypes: [CROSS_REFERENCED_EVENT]) {
+      pageInfo { hasNextPage }
+      nodes { ... on CrossReferencedEvent { source { __typename ... on PullRequest { state url } } } }
+    }
+    projectItems(first: 20) { pageInfo { hasNextPage } nodes {
       id project { id }
       fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } } } }
   } }
@@ -160,30 +158,36 @@ def merged_prs(since):
 
 # ------------------------------------------------------------------- logic
 
-def pick_assignee(issue, pr):
-    """Who should own the ticket, from the interaction history, newest first."""
-    history = []
-    for ev in reversed(issue["timelineItems"]["nodes"]):
-        history.append((ev.get("assignee"), "earlier assignee of the ticket"))
-    history += [(a, "assignee of the PR") for a in pr["assignees"]["nodes"]]
-    history.append((pr["author"], "author of the PR"))
-    history += [(c["author"], "commented on the ticket") for c in reversed(issue["comments"]["nodes"])]
-    return first_human(history)
-
-
 def pick_reviewer(pr):
     """(login, reason, already_reviewed) for the PR's reviewer."""
     author = (pr["author"] or {}).get("login")
-    reviewed, _ = first_human([(r["author"], "") for r in pr["reviews"]["nodes"]], exclude={author})
-    if reviewed:
-        return reviewed, "reviewed the PR", True
-    history = [(r["requestedReviewer"], "review was requested") for r in pr["reviewRequests"]["nodes"]]
-    history += [(e["requestedReviewer"], "review was requested earlier")
-                for e in reversed(pr["timelineItems"]["nodes"])]
-    history += [(c["author"], "commented on the PR") for c in reversed(pr["comments"]["nodes"])]
-    history.append((pr["mergedBy"], "merged the PR"))
-    login, reason = first_human(history, exclude={author})
-    return login, reason, False
+    reviews = pr.get("reviews") or {}
+    if reviews.get("pageInfo", {}).get("hasPreviousPage") is not False:
+        return None, None, False
+    latest_decision = {}
+    valid_reviews = []
+    expected_head = pr.get("headRefOid")
+    if not expected_head:
+        return None, None, False
+    for review in reviews.get("nodes", []):
+        actor = review.get("author")
+        state = review.get("state")
+        if not actor or actor.get("__typename") != "User":
+            continue
+        login = (actor.get("login") or "").lower()
+        if not login or login.endswith("[bot]") or login in BOT_LOGINS or login == (author or "").lower():
+            continue
+        if state in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
+            latest_decision[login] = state
+        if state == "APPROVED" and is_human(actor) and (review.get("commit") or {}).get("oid") == expected_head:
+            valid_reviews.append((actor, ""))
+    if any(state == "CHANGES_REQUESTED" for state in latest_decision.values()):
+        return None, None, False
+    valid_reviews = [(actor, reason) for actor, reason in valid_reviews
+                     if latest_decision.get(actor["login"].lower()) == "APPROVED"]
+    reviewed, _ = first_human(valid_reviews)
+    return (reviewed, "reviewed the PR", True) if reviewed else (None, None, False)
+
 
 
 def process(pr, project, log):
@@ -198,14 +202,9 @@ def process(pr, project, log):
         log(f"- {pr_ref}: no `Closes` reference, nothing to move")
         return
     reviewer, rev_reason, reviewed = pick_reviewer(pr)
-    if reviewer and not reviewed:
-        log(f"- {pr_ref}: no human review on record, reviewer `{reviewer}` ({rev_reason})")
-        if not DRY_RUN:
-            try:
-                rest("POST", f"/repos/{owner}/{repo}/pulls/{pr['number']}/requested_reviewers",
-                     {"reviewers": [reviewer]})
-            except urllib.error.HTTPError as err:
-                log(f"  - could not request review on merged PR ({err.code}); named in the ticket comment instead")
+    if not reviewer or not reviewed:
+        log(f"- {pr_ref}: no current human review; left for manual review")
+        return
     for i_owner, i_repo, number in refs:
         try:
             issue = gql(ISSUE_Q, owner=i_owner, name=i_repo, number=number)["repository"]["issue"]
@@ -218,35 +217,42 @@ def process(pr, project, log):
 
 def handle_issue(pr, pr_ref, issue, ticket, issue_repo, review, project, log):
     marker = MARKER.format(pr=pr_ref)
-    if any(marker in (c["body"] or "") for c in issue["comments"]["nodes"]):
+    comments = issue.get("comments") or {}
+    if comments.get("pageInfo", {}).get("hasPreviousPage") is not False:
+        log(f"- {pr_ref} -> {ticket}: comment history incomplete; left alone")
+        return
+    if any(marker in (c["body"] or "") for c in comments["nodes"]):
         log(f"- {pr_ref} -> {ticket}: already handled earlier")
         return
-    item = next((i for i in issue["projectItems"]["nodes"] if i["project"]["id"] == project["id"]), None)
+    project_items = issue.get("projectItems") or {}
+    if project_items.get("pageInfo", {}).get("hasNextPage") is not False:
+        log(f"- {pr_ref} -> {ticket}: project inventory incomplete; left alone")
+        return
+    item = next((i for i in project_items["nodes"] if i["project"]["id"] == project["id"]), None)
     status = item and (item["fieldValueByName"] or {}).get("name")
     if status not in MOVABLE:
         log(f"- {pr_ref} -> {ticket}: status `{status}`, left alone")
         return
 
-    lines = []
+    linked = issue.get("linkedPullRequests")
+    if not linked or linked.get("pageInfo", {}).get("hasNextPage") is not False:
+        log(f"- {pr_ref} -> {ticket}: linked PR inventory incomplete; left alone")
+        return
+    sources = [node.get("source") for node in linked.get("nodes", [])]
+    if any(not source or source.get("__typename") not in ("Issue", "PullRequest")
+           or (source["__typename"] == "PullRequest" and source.get("state") not in ("OPEN", "CLOSED", "MERGED"))
+           for source in sources):
+        log(f"- {pr_ref} -> {ticket}: referenced item unavailable; left alone")
+        return
+    if any(source["__typename"] == "PullRequest" and source["state"] == "OPEN" for source in sources):
+        log(f"- {pr_ref} -> {ticket}: another referenced PR is open; left alone")
+        return
     assignees = [a["login"] for a in issue["assignees"]["nodes"]]
-    if assignees:
-        lines.append(f"- Assignee: {', '.join(f'`{a}`' for a in assignees)}")
-    else:
-        assignee, reason = pick_assignee(issue, pr)
-        if assignee:
-            lines.append(f"- Assignee: `{assignee}` (added by this automation: {reason})")
-            if not DRY_RUN:
-                rest("POST", f"/repos/{issue_repo[0]}/{issue_repo[1]}/issues/{issue['number']}/assignees",
-                     {"assignees": [assignee]})
-        else:
-            lines.append("- Assignee: none found in the history, please set one")
-    reviewer, rev_reason, reviewed = review
-    if reviewer:
-        note = "" if reviewed else f" (added by this automation: {rev_reason})"
-        lines.append(f"- Reviewer: `{reviewer}`{note}")
-    else:
-        lines.append("- Reviewer: none found in the history, please name one")
-
+    if not assignees or not review[0] or not review[2]:
+        log(f"- {pr_ref} -> {ticket}: missing assignee or current human review; left alone")
+        return
+    lines = [f"- Assignee: {', '.join(f'`{a}`' for a in assignees)}",
+             f"- Reviewer: `{review[0]}`"]
     log(f"- {pr_ref} -> {ticket}: `{status}` -> `{STATUS_NAME}`")
     for line in lines:
         log(f"  {line}")
