@@ -1,9 +1,11 @@
 name: Move merged tickets to QA internal
 
 # Org-wide: finds PRs merged into `dev` in any ORISO repository, moves the tickets
-# they close (`Closes #N`) to "QA internal" on the ORISO Roadmap, and fills a
-# missing assignee or reviewer from the interaction history.
+# they close (`Closes #N`) to "QA internal" only when assignee, exact-head human approval
+# and linked-PR evidence are complete. Missing evidence is left for manual triage.
 on:
+  pull_request:
+    branches: [main]
   schedule:
     - cron: "*/20 * * * *"
   workflow_dispatch:
@@ -20,11 +22,29 @@ permissions:
   contents: read
 
 concurrency:
-  group: move-merged-to-qa-internal
+  group: move-merged-to-qa-internal-${{ github.event_name == 'pull_request' && github.ref || 'writer' }}
   cancel-in-progress: false
 
 jobs:
+  source-contracts:
+    name: QA mover source contracts
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify mover contracts
+        working-directory: .github/scripts
+        run: |
+          python -m py_compile qa_internal_mover.py test_qa_internal_mover.py
+          python -m unittest -v test_qa_internal_mover
   move:
+    if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
